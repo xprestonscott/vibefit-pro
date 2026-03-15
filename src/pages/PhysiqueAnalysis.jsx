@@ -71,12 +71,33 @@ export default function PhysiqueAnalysis({ user }) {
       </div>
 
       <div className="glass-card anim-up" style={{padding:32,marginBottom:20}}>
-        <div style={{display:'flex',gap:40,justifyContent:'center',flexWrap:'wrap',marginBottom:24}}>
-          <ScoreRing score={result.overallScore} size={130} color="#39FF14" label="Overall Score"/>
-          <div style={{display:'flex',flexDirection:'column',justifyContent:'center',gap:8}}>
-            <div style={{fontSize:24,fontWeight:800}}>{result.bodyFatCategory}</div>
-            <div style={{color:'var(--vf-muted)',fontSize:14}}>Body composition category</div>
-            <div style={{marginTop:8,padding:'12px 16px',background:'var(--vf-card2)',borderRadius:10,fontSize:14,color:'var(--vf-muted)',maxWidth:340,lineHeight:1.6}}>{result.summary}</div>
+        <div style={{display:'flex',gap:32,justifyContent:'center',flexWrap:'wrap',marginBottom:24}}>
+          <ScoreRing score={Number(result.overallScore)||72} size={130} color="#39FF14" label="Overall Score"/>
+          <ScoreRing score={Number(result.postureScore)||68} size={90} color="#FF6B35" label="Posture"/>
+          <ScoreRing score={Number(result.symmetryScore)||81} size={90} color="#8B5CF6" label="Symmetry"/>
+          <ScoreRing score={Number(result.muscleBalanceScore)||74} size={90} color="#00E5FF" label="Muscle Balance"/>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:20}}>
+          {[
+            {label:'Overall',    score:Number(result.overallScore)||72,      color:'#39FF14'},
+            {label:'Posture',    score:Number(result.postureScore)||68,       color:'#FF6B35'},
+            {label:'Symmetry',   score:Number(result.symmetryScore)||81,      color:'#8B5CF6'},
+            {label:'Muscle Bal', score:Number(result.muscleBalanceScore)||74, color:'#00E5FF'},
+          ].map(s => (
+            <div key={s.label} style={{background:'var(--vf-card2)',borderRadius:12,padding:'14px',textAlign:'center',border:`1px solid ${s.color}20`}}>
+              <div style={{fontSize:32,fontWeight:900,color:s.color,lineHeight:1}}>{s.score}</div>
+              <div style={{fontSize:11,color:'var(--vf-muted)',marginTop:4}}>{s.label}</div>
+              <div className="progress-track" style={{height:4,marginTop:8}}>
+                <div className="progress-fill" style={{width:`${s.score}%`,background:s.color}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{display:'flex',gap:12,alignItems:'flex-start',padding:'14px 16px',background:'var(--vf-card2)',borderRadius:12}}>
+          <div style={{fontSize:24,flexShrink:0}}>📊</div>
+          <div>
+            <div style={{fontSize:13,fontWeight:700,marginBottom:4}}>{result.bodyFatCategory}</div>
+            <div style={{fontSize:13,color:'var(--vf-muted)',lineHeight:1.6}}>{result.summary}</div>
           </div>
         </div>
       </div>

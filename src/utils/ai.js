@@ -60,9 +60,12 @@ Body Fat: ${data.bodyFat}% | Experience: ${data.experience} | Goal: ${data.goal}
 Current lifts: ${data.lifts || "Not provided"} | Problem areas: ${data.problemAreas || "None"}
 Notes: ${data.notes || "None"}
 
-Return ONLY this JSON structure with specific, actionable content:
+Return ONLY this JSON structure. overallScore MUST be a number between 1-100. All scores must be integers:
 {
   "overallScore": 72,
+  "postureScore": 68,
+  "symmetryScore": 81,
+  "muscleBalanceScore": 74,
   "bodyFatCategory": "Athletic",
   "summary": "2-3 sentence honest assessment of current physique and potential",
   "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
