@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import { storage, KEYS } from './utils/storage'
 import Dashboard from './pages/Dashboard'
@@ -18,8 +18,18 @@ const PAGES = {
 }
 
 export default function App() {
-  const [user, setUser] = useState(() => storage.get(KEYS.USER))
-  const [page, setPage] = useState('dashboard')
+  const [user, setUser]   = useState(() => storage.get(KEYS.USER))
+  const [page, setPage]   = useState('dashboard')
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 768)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   function handleOnboardingComplete(userData) {
     storage.set(KEYS.USER, userData)
@@ -29,10 +39,28 @@ export default function App() {
   if (!user) return <Onboarding onComplete={handleOnboardingComplete} />
 
   const Page = PAGES[page] || Dashboard
+
+  // Calculate margin based on sidebar state
+  const marginLeft = isMobile ? 0 : (sidebarCollapsed ? 68 : 260)
+  const paddingTop = isMobile ? 56 : 0
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#080810' }}>
-      <Sidebar currentPage={page} setCurrentPage={setPage} user={user} />
-      <main style={{ flex: 1, marginLeft: 260, padding: '36px 40px', overflowY: 'auto', minHeight: '100vh' }}>
+      <Sidebar
+        currentPage={page}
+        setCurrentPage={setPage}
+        user={user}
+        onCollapse={setSidebarCollapsed}
+      />
+      <main style={{
+        flex: 1,
+        marginLeft,
+        paddingTop,
+        padding: isMobile ? '72px 16px 24px' : `36px 40px`,
+        overflowY: 'auto',
+        minHeight: '100vh',
+        transition: 'margin-left .25s ease',
+      }}>
         <Page setCurrentPage={setPage} user={user} />
       </main>
     </div>
