@@ -12,7 +12,7 @@ const NAV = [
   { id:'social',       label:'Community',    icon:Users },
 ]
 
-export default function Sidebar({ currentPage, setCurrentPage, user }) {
+export default function Sidebar({ currentPage, setCurrentPage, user, onLogout }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -197,9 +197,9 @@ export default function Sidebar({ currentPage, setCurrentPage, user }) {
               <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,var(--vf-bg2),var(--vf-card2))', border: '1px solid var(--vf-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>
                 {user?.name?.[0]?.toUpperCase() || '?'}
               </div>
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vf-muted)', padding: 4 }} title="Reset"
-                onClick={() => { storage.clearAll(); window.location.reload() }}>
-                <LogOut size={14} />
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vf-muted)', padding: 4 }} title="Settings"
+                onClick={() => setCurrentPage('settings')}>
+                <Settings size={14} />
               </button>
             </div>
           ) : (
@@ -213,9 +213,9 @@ export default function Sidebar({ currentPage, setCurrentPage, user }) {
                   <div style={{ fontSize: 10, color: 'var(--vf-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.goal || 'No goal set'}</div>
                 </div>
               </div>
-              <button className="btn-danger" style={{ marginTop: 10, width: '100%', justifyContent: 'center', fontSize: 11, padding: '6px' }}
-                onClick={() => { storage.clearAll(); window.location.reload() }}>
-                <LogOut size={12} /> Reset & Start Over
+              <button className="btn-ghost" style={{ marginTop: 10, width: '100%', justifyContent: 'center', fontSize: 11, padding: '6px' }}
+                onClick={() => setCurrentPage('settings')}>
+                <Settings size={12}/> Settings & Sign Out
               </button>
             </div>
           )}

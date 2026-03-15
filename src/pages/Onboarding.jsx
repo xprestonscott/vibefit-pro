@@ -16,7 +16,7 @@ const EXPERIENCE = [
   {id:'Advanced', icon:'🔥', desc:'3+ years, serious athlete'},
 ]
 
-export default function Onboarding({ onComplete }) {
+export default function Onboarding({ onComplete, prefillName='', prefillEmail='' }) {
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
