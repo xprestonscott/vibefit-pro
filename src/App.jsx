@@ -89,7 +89,7 @@ export default function App() {
 
   if (authState === 'onboarding') return (
     <Onboarding
-      prefillName={userProfile?.name || firebaseUser?.displayName || ''}
+      prefillName=''
       prefillEmail={userProfile?.email || firebaseUser?.email || ''}
       onComplete={handleOnboardingComplete}
     />
