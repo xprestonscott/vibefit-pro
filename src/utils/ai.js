@@ -87,3 +87,64 @@ export async function chatWithCoach(history, message) {
   const sys = "You are VibeFit Pro AI coach. Give concise (2-3 sentences), specific, actionable fitness advice. Be direct and encouraging.";
   return await callAI([...history, { role: "user", content: message }], sys, 400);
 }
+
+export async function analyzeMeal(base64Image, mimeType = 'image/jpeg') {
+  const sys = 'You are a nutrition expert and food recognition AI. Always respond with ONLY valid JSON. No markdown or extra text.'
+  const prompt = `Analyze this food image and provide detailed nutritional information.
+
+Return ONLY this JSON:
+{
+  "foodName": "Name of the food or meal",
+  "servingSize": "estimated serving size",
+  "calories": 450,
+  "protein": 35,
+  "carbs": 42,
+  "fat": 12,
+  "fiber": 4,
+  "confidence": "high/medium/low",
+  "items": ["item 1", "item 2"],
+  "notes": "any relevant nutrition notes"
+}`
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: sys,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mimeType,
+              data: base64Image,
+            }
+          },
+          { type: 'text', text: prompt }
+        ]
+      }]
+    })
+  })
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}))
+    throw new Error(e.error?.message || 'Failed to analyze image')
+  }
+
+  const data = await res.json()
+  const text = data.content[0].text
+  const block = text.match(/```json[\n\r]+([\s\S]*?)```/)
+  if (block) return JSON.parse(block[1])
+  const brace = text.match(/{[\s\S]*}/)
+  if (brace) return JSON.parse(brace[0])
+  throw new Error('Could not parse nutrition data')
+}

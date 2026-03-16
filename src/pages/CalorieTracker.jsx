@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, Search, Droplets } from 'lucide-react'
+import MealScanner from '../components/MealScanner'
 import { storage, KEYS } from '../utils/storage'
 
 const GOAL  = { calories:2400, protein:180, carbs:260, fat:70 }
