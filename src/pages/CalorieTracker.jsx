@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Plus, X, Search, Clock, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+import { Plus, X, Search, Clock, ChevronDown, ChevronUp, Trash2, History, Target, Edit2, Check } from 'lucide-react'
+import { getGoalFromStorage, saveGoalToStorage, calculateMacros } from '../utils/calories'
 import { storage, KEYS } from '../utils/storage'
 import { getGoalFromStorage } from '../utils/calories'
 import { searchUSDA } from '../utils/usdaApi'
@@ -251,6 +252,41 @@ export default function CalorieTracker() {
   const GOAL = getGoal()
   const remaining = GOAL.calories - totals.cal
 
+  // History
+  const [showHistory, setShowHistory] = useState(false)
+  const [showGoalEditor, setShowGoalEditor] = useState(false)
+  const [customCal, setCustomCal] = useState(() => getGoalFromStorage().calories)
+  const [goalSaved, setGoalSaved] = useState(false)
+
+  function saveGoal(cal) {
+    const macros = calculateMacros(Number(cal), null, null)
+    saveGoalToStorage(Number(cal), macros)
+    setCustomCal(cal)
+    setGoalSaved(true)
+    setTimeout(() => setGoalSaved(false), 2000)
+  }
+
+  function getPastDays() {
+    const all = storage.get(KEYS.FOOD_LOG) || {}
+    return Object.entries(all)
+      .filter(([date]) => date !== today)
+      .sort((a,b) => b[0].localeCompare(a[0]))
+      .slice(0, 14)
+      .map(([date, meals]) => {
+        const foods = Object.values(meals).flat()
+        return {
+          date,
+          label: new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }),
+          cal:   foods.reduce((a,f) => a+(f.cal||0), 0),
+          p:     foods.reduce((a,f) => a+(f.p||0), 0),
+          c:     foods.reduce((a,f) => a+(f.c||0), 0),
+          f:     foods.reduce((a,f) => a+(f.f||0), 0),
+          count: foods.length,
+          meals,
+        }
+      })
+  }
+
   return (
     <div>
       {modal && <AddFoodModal meal={modal} onAdd={addFood} onClose={()=>setModal(null)}/>}
@@ -263,6 +299,30 @@ export default function CalorieTracker() {
           {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
         </p>
       </div>
+
+      {/* Goal editor */}
+      {showGoalEditor && (
+        <div style={{background:'#141422',border:'1px solid rgba(57,255,20,.2)',borderRadius:14,padding:20,marginBottom:16}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+            <div style={{fontSize:15,fontWeight:700,display:'flex',alignItems:'center',gap:8}}><Target size={16} style={{color:'#39FF14'}}/>Daily Calorie Goal</div>
+            <button style={{background:'none',border:'none',cursor:'pointer',color:'#6B6B8A'}} onClick={()=>setShowGoalEditor(false)}><X size={16}/></button>
+          </div>
+          <div style={{display:'flex',gap:10,marginBottom:12}}>
+            <input type="number" className="vf-input" value={customCal} onChange={e=>setCustomCal(e.target.value)} style={{flex:1,fontSize:18,fontWeight:800,textAlign:'center'}} placeholder="e.g. 2200"/>
+            <button className={goalSaved?'btn-primary':'btn-ghost'} style={{padding:'10px 20px',flexShrink:0}} onClick={()=>saveGoal(customCal)}>
+              {goalSaved?<><Check size={14}/>Saved!</>:<>Save</>}
+            </button>
+          </div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+            {[1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,3500].map(c=>(
+              <button key={c} onClick={()=>setCustomCal(c)} style={{padding:'6px 12px',borderRadius:8,border:`1px solid ${Number(customCal)===c?'rgba(57,255,20,.4)':'#252540'}`,background:Number(customCal)===c?'rgba(57,255,20,.08)':'#1C1C2E',color:Number(customCal)===c?'#39FF14':'#6B6B8A',cursor:'pointer',fontSize:12,fontWeight:600,transition:'all .15s'}}>
+                {c}
+              </button>
+            ))}
+          </div>
+          <div style={{fontSize:11,color:'#6B6B8A',marginTop:10}}>Macros will auto-adjust when you save</div>
+        </div>
+      )}
 
       {/* Calorie summary */}
       <div style={{background:'#141422',border:'1px solid #252540',borderRadius:14,padding:'18px 20px',marginBottom:16}}>
@@ -290,6 +350,50 @@ export default function CalorieTracker() {
           ))}
         </div>
       </div>
+
+      {/* Quick action buttons */}
+      <div style={{display:'flex',gap:8,marginBottom:12}}>
+        <button className="btn-ghost" style={{fontSize:12,padding:'7px 14px'}} onClick={()=>setShowGoalEditor(v=>!v)}>
+          <Target size={13}/> Goal: {getGoalFromStorage().calories} kcal
+        </button>
+        <button className="btn-ghost" style={{fontSize:12,padding:'7px 14px'}} onClick={()=>setShowHistory(v=>!v)}>
+          <History size={13}/> Food History
+        </button>
+      </div>
+
+      {/* History panel */}
+      {showHistory && (
+        <div style={{background:'#141422',border:'1px solid #252540',borderRadius:14,marginBottom:16,overflow:'hidden'}}>
+          <div style={{padding:'14px 18px',borderBottom:'1px solid #252540',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div style={{fontSize:15,fontWeight:700,display:'flex',alignItems:'center',gap:8}}><History size={15} style={{color:'#00E5FF'}}/>Past 14 Days</div>
+            <button style={{background:'none',border:'none',cursor:'pointer',color:'#6B6B8A'}} onClick={()=>setShowHistory(false)}><X size={16}/></button>
+          </div>
+          {getPastDays().length === 0 ? (
+            <div style={{padding:'24px',textAlign:'center',color:'#6B6B8A',fontSize:13}}>No history yet — start logging food today!</div>
+          ) : getPastDays().map(day => (
+            <div key={day.date} style={{borderBottom:'1px solid rgba(37,37,64,.4)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 18px'}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:600}}>{day.label}</div>
+                  <div style={{fontSize:11,color:'#6B6B8A',marginTop:2}}>{day.count} foods logged</div>
+                </div>
+                <div style={{display:'flex',gap:16,alignItems:'center'}}>
+                  <div style={{textAlign:'center'}}><div style={{fontSize:13,color:'#39FF14',fontWeight:700}}>{day.p}g</div><div style={{fontSize:9,color:'#6B6B8A'}}>Protein</div></div>
+                  <div style={{textAlign:'center'}}><div style={{fontSize:13,color:'#00E5FF',fontWeight:700}}>{day.c}g</div><div style={{fontSize:9,color:'#6B6B8A'}}>Carbs</div></div>
+                  <div style={{textAlign:'center'}}><div style={{fontSize:13,color:'#FF6B35',fontWeight:700}}>{day.f}g</div><div style={{fontSize:9,color:'#6B6B8A'}}>Fat</div></div>
+                  <div style={{textAlign:'right',minWidth:48}}>
+                    <div style={{fontSize:18,fontWeight:900,color:day.cal>=getGoalFromStorage().calories?'#39FF14':'#F0F0FF'}}>{day.cal}</div>
+                    <div style={{fontSize:9,color:'#6B6B8A'}}>kcal</div>
+                  </div>
+                </div>
+              </div>
+              <div style={{height:3,background:'#252540',margin:'0 18px 10px'}}>
+                <div style={{height:'100%',width:`${Math.min((day.cal/getGoalFromStorage().calories)*100,100)}%`,background:day.cal>=getGoalFromStorage().calories?'#39FF14':'#FF6B35',borderRadius:2}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Daily log summary toggle */}
       {allFoods.length > 0 && (
