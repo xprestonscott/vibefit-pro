@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Plus, X, Search, Droplets } from 'lucide-react'
+import { Plus, X, Search, Droplets, Filter } from 'lucide-react'
 import MealScanner from '../components/MealScanner'
+import { searchFoods, CATEGORIES } from '../utils/foodDatabase'
 import { storage, KEYS } from '../utils/storage'
 
 const GOAL  = { calories:2400, protein:180, carbs:260, fat:70 }
-const FOODS = [
+// FOODS now imported from foodDatabase.js
+const FOODS_LEGACY = [
   {id:1,name:'Chicken Breast (6oz)',cal:280,p:52,c:0,f:6},{id:2,name:'White Rice (1 cup)',cal:206,p:4,c:45,f:0},
   {id:3,name:'Broccoli (1 cup)',cal:55,p:4,c:11,f:1},{id:4,name:'Eggs (2 whole)',cal:143,p:13,c:1,f:10},
   {id:5,name:'Oatmeal (½ cup dry)',cal:150,p:5,c:27,f:3},{id:6,name:'Greek Yogurt (1 cup)',cal:130,p:22,c:9,f:0},
@@ -35,7 +37,7 @@ export default function CalorieTracker() {
   const allFoods = Object.values(log).flat()
   const totals   = { cal:allFoods.reduce((a,f)=>a+f.cal,0), p:allFoods.reduce((a,f)=>a+f.p,0), c:allFoods.reduce((a,f)=>a+f.c,0), f:allFoods.reduce((a,f)=>a+f.f,0) }
   const remaining = GOAL.calories - totals.cal
-  const filtered  = FOODS.filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
+  const filtered  = searchFoods(query)
 
   return (
     <div>
