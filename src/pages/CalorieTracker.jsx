@@ -116,7 +116,10 @@ export default function CalorieTracker() {
                   <div style={{ fontSize:11, color:'var(--vf-muted)' }}>{log[m.id].reduce((a,f)=>a+f.cal,0)} kcal</div>
                 </div>
               </div>
-              <button className="btn-ghost" style={{ padding:'6px 12px', fontSize:12 }} onClick={() => setModal(m.id)}><Plus size={12}/>Add</button>
+              <div style={{display:'flex',gap:8}}>
+                <MealScanner meal={m.id} onFoodAdded={addFood}/>
+                <button className="btn-ghost" style={{ padding:'6px 12px', fontSize:12 }} onClick={() => setModal(m.id)}><Plus size={12}/>Add</button>
+              </div>
             </div>
             {log[m.id].length === 0 ? (
               <div style={{ padding:'12px', textAlign:'center', border:'1px dashed var(--vf-border)', borderRadius:8, color:'var(--vf-muted)', fontSize:12 }}>
