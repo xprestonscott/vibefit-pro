@@ -10,13 +10,13 @@ export const PLANS = {
     id: 'free', name: 'Free', price: 0, icon: '🌱', color: '#6B6B8A',
     limits: {
       aiWorkoutsPerDay:    1,
-      aiAdjustmentsPerDay: 0,
-      aiScansPerMonth:     0,
-      maxGoals:            3,
+      aiAdjustmentsPerDay: 2,
+      aiScansPerMonth:     1,
+      maxGoals:            5,
       calorieTracking:     true,
       socialFeed:          true,
       friendSystem:        true,
-      customSplits:        false,
+      customSplits:        true,
       prioritySupport:     false,
       virtualCoaching:     false,
     }
