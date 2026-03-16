@@ -17,7 +17,7 @@ export default function UpgradeModal({ feature, onClose }) {
   const suggestedPlans = ['basic', 'pro', 'elite'].map(id => PLANS[id])
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(8,8,16,.9)', backdropFilter:'blur(12px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:2000, padding:20 }}
+    <div style={{ position:'fixed', inset:0, background:'rgba(8,8,16,.97)', backdropFilter:'blur(20px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:99999, padding:20 }}
       onClick={onClose}>
       <div style={{ background:'var(--vf-card)', border:'1px solid rgba(57,255,20,.3)', borderRadius:24, width:'100%', maxWidth:520, padding:36 }}
         onClick={e => e.stopPropagation()}>

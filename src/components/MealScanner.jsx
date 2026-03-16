@@ -75,7 +75,7 @@ export default function MealScanner({ meal, onFoodAdded }) {
 
       {open && (
         <div style={{
-          position:'fixed', inset:0, zIndex:9999,
+          position:'fixed', inset:0, zIndex:99999,
           background:'rgba(8,8,16,.95)', backdropFilter:'blur(16px)',
           display:'flex', alignItems:'center', justifyContent:'center',
           padding:'20px',
