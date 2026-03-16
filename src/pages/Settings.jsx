@@ -1,10 +1,76 @@
+import React from 'react'
 import { useState } from 'react'
-import { Key, Trash2, LogOut, User, Shield, Bell, ChevronRight, Check } from 'lucide-react'
+import { Key, Trash2, LogOut, User, Shield, Bell, Check, Flame } from 'lucide-react'
+import { getGoalFromStorage, saveGoalToStorage, calculateCalories, calculateMacros } from '../utils/calories'
 import { storage } from '../utils/storage'
 import { logOut } from '../utils/auth'
 import { deleteUser, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 import { auth, db } from '../utils/firebase'
 import { doc, deleteDoc } from 'firebase/firestore'
+
+function CalorieGoalEditor({ user }) {
+  const [goal, setGoal]   = React.useState(() => getGoalFromStorage())
+  const [custom, setCustom] = React.useState(goal.calories)
+  const [saved, setSaved] = React.useState(false)
+  const [mode, setMode]   = React.useState('custom') // custom | recalculate
+
+  function handleSave() {
+    const macros = calculateMacros(Number(custom), user?.goal, user?.weight)
+    saveGoalToStorage(Number(custom), macros)
+    setGoal({ calories: Number(custom), macros })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  function handleRecalculate() {
+    if (!user?.weight || !user?.height) return
+    const cal    = calculateCalories({ weight:user.weight, height:user.height, age:user.age, gender:user.gender, activityLevel:user.activity, goal:user.goal })
+    const macros = calculateMacros(cal, user.goal, user.weight)
+    saveGoalToStorage(cal, macros)
+    setGoal({ calories: cal, macros })
+    setCustom(cal)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
+        {[{l:'Calories',v:goal.calories,c:'#39FF14'},{l:'Protein',v:goal.macros?.protein+'g',c:'#39FF14'},{l:'Carbs',v:goal.macros?.carbs+'g',c:'#00E5FF'},{l:'Fat',v:goal.macros?.fat+'g',c:'#FF6B35'}].map(m=>(
+          <div key={m.l} style={{background:'var(--vf-card2)',borderRadius:10,padding:'12px',textAlign:'center'}}>
+            <div style={{fontSize:18,fontWeight:800,color:m.c}}>{m.v}</div>
+            <div style={{fontSize:11,color:'var(--vf-muted)'}}>{m.l}/day</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{marginBottom:14}}>
+        <label style={{fontSize:11,color:'var(--vf-muted)',fontWeight:600,letterSpacing:'.5px',display:'block',marginBottom:6}}>SET CUSTOM DAILY CALORIES</label>
+        <div style={{display:'flex',gap:10}}>
+          <input className="vf-input" type="number" value={custom} onChange={e=>setCustom(e.target.value)} style={{flex:1,fontSize:16,fontWeight:700}} placeholder="e.g. 2200"/>
+          <button className={saved?'btn-primary':'btn-ghost'} style={{flexShrink:0,padding:'10px 18px'}} onClick={handleSave}>
+            {saved?<><Check size={14}/>Saved!</>:<>Save</>}
+          </button>
+        </div>
+        <div style={{fontSize:11,color:'var(--vf-muted)',marginTop:6}}>Macros will be recalculated automatically based on your goal</div>
+      </div>
+
+      <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+        {[1500,1800,2000,2200,2400,2600,2800,3000,3200,3500].map(cal=>(
+          <button key={cal} onClick={()=>{setCustom(cal)}} style={{padding:'6px 12px',borderRadius:8,border:`1px solid ${Number(custom)===cal?'rgba(57,255,20,.4)':'var(--vf-border)'}`,background:Number(custom)===cal?'rgba(57,255,20,.08)':'var(--vf-card2)',color:Number(custom)===cal?'#39FF14':'var(--vf-muted)',cursor:'pointer',fontSize:12,fontWeight:600,transition:'all .15s'}}>
+            {cal}
+          </button>
+        ))}
+      </div>
+
+      {user?.weight && user?.height && (
+        <button className="btn-ghost" style={{marginTop:14,width:'100%',justifyContent:'center',fontSize:13}} onClick={handleRecalculate}>
+          🔄 Recalculate from my body stats
+        </button>
+      )}
+    </div>
+  )
+}
 
 export default function Settings({ user, setCurrentPage }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -152,6 +218,15 @@ export default function Settings({ user, setCurrentPage }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Calorie Goal */}
+        <div className="glass-card" style={{padding:28}}>
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+            <Flame size={18} style={{color:'#FF6B35'}}/>
+            <h3 style={{margin:0,fontSize:17}}>Daily Calorie Goal</h3>
+          </div>
+          <CalorieGoalEditor user={user}/>
         </div>
 
         {/* API Key info */}

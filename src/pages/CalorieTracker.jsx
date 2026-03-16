@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, X, Search, Clock, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { storage, KEYS } from '../utils/storage'
+import { getGoalFromStorage } from '../utils/calories'
 import { searchUSDA } from '../utils/usdaApi'
 import MealScanner from '../components/MealScanner'
 
-const GOAL  = { calories:2400, protein:180, carbs:260, fat:70 }
+function getGoal() {
+  const { calories, macros } = getGoalFromStorage()
+  return { calories, protein: macros.protein, carbs: macros.carbs, fat: macros.fat }
+}
 const MEALS = [
   { id:'breakfast', label:'Breakfast', icon:'\u{1F305}' },
   { id:'lunch',     label:'Lunch',     icon:'\u2600\uFE0F' },
@@ -244,6 +248,7 @@ export default function CalorieTracker() {
     c:   allFoods.reduce((a,f)=>a+(f.c||0),0),
     f:   allFoods.reduce((a,f)=>a+(f.f||0),0),
   }
+  const GOAL = getGoal()
   const remaining = GOAL.calories - totals.cal
 
   return (
@@ -264,17 +269,17 @@ export default function CalorieTracker() {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,flexWrap:'wrap',gap:8}}>
           <div>
             <span style={{fontSize:isMobile?32:42,fontWeight:900,color:remaining<0?'#FF6B35':'#F0F0FF'}}>{totals.cal}</span>
-            <span style={{fontSize:13,color:'#6B6B8A',marginLeft:6}}>/ {GOAL.calories} kcal</span>
+            <span style={{fontSize:13,color:'#6B6B8A',marginLeft:6}}>/ {getGoal().calories} kcal</span>
           </div>
           <div style={{fontSize:14,fontWeight:700,color:remaining>0?'#39FF14':'#FF6B35'}}>
             {remaining>0?`${remaining} remaining`:`${Math.abs(remaining)} over goal`}
           </div>
         </div>
         <div style={{height:8,background:'#252540',borderRadius:4,overflow:'hidden',marginBottom:14}}>
-          <div style={{height:'100%',width:`${Math.min((totals.cal/GOAL.calories)*100,100)}%`,background:remaining<0?'#FF6B35':'linear-gradient(90deg,#39FF14,#00C851)',borderRadius:4,transition:'width 1s ease'}}/>
+          <div style={{height:'100%',width:`${Math.min((totals.cal/getGoal().calories)*100,100)}%`,background:remaining<0?'#FF6B35':'linear-gradient(90deg,#39FF14,#00C851)',borderRadius:4,transition:'width 1s ease'}}/>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
-          {[{l:'Protein',v:totals.p,g:GOAL.protein,c:'#39FF14'},{l:'Carbs',v:totals.c,g:GOAL.carbs,c:'#00E5FF'},{l:'Fat',v:totals.f,g:GOAL.fat,c:'#FF6B35'}].map(m=>(
+          {[{l:'Protein',v:totals.p,g:getGoal().protein,c:'#39FF14'},{l:'Carbs',v:totals.c,g:getGoal().carbs,c:'#00E5FF'},{l:'Fat',v:totals.f,g:getGoal().fat,c:'#FF6B35'}].map(m=>(
             <div key={m.l} style={{textAlign:'center',padding:'10px',background:'#1C1C2E',borderRadius:10}}>
               <div style={{fontSize:isMobile?16:18,fontWeight:800,color:m.c}}>{m.v}g</div>
               <div style={{fontSize:10,color:'#6B6B8A'}}>{m.l} / {m.g}g</div>
