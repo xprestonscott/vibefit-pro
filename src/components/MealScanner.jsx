@@ -15,7 +15,7 @@ export default function MealScanner({ onFoodAdded, meal }) {
   const fileRef = useRef()
 
   const plan = getCurrentPlan()
-  const canScan = ['basic', 'pro', 'elite'].includes(plan)
+  const canScan = true // All plans can scan — upgrade modal shown inside if free
 
   function handleOpen() {
     if (!canScan) { setShowUpgrade(true); return }
