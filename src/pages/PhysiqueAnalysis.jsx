@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { Upload, Shield, Zap, Check, TrendingUp, RefreshCw } from 'lucide-react'
+import { Upload, Shield, Zap, Check, TrendingUp, RefreshCw, Lock } from 'lucide-react'
+import { checkLimit, incrementUsage, getCurrentPlan } from '../utils/subscription'
+import UpgradeModal from '../components/UpgradeModal'
 import { analyzePhysique } from '../utils/ai'
 
 function ScoreRing({ score, size=100, color='#39FF14', label }) {
@@ -29,11 +31,14 @@ export default function PhysiqueAnalysis({ user }) {
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
   const [photo, setPhoto] = useState(null)
+  const [upgradeFeature, setUpgradeFeature] = useState(null)
 
   function setField(k, v) { setForm(f => ({...f, [k]: v})) }
 
   async function handleAnalyze() {
     if (!form.age || !form.height || !form.weight) { setError('Please fill in Age, Height, and Weight at minimum.'); return }
+    if (!checkLimit('aiScansPerMonth')) { setUpgradeFeature('aiScansPerMonth'); return }
+    incrementUsage('aiScansPerMonth')
     setAnalyzing(true)
     setError(null)
     try {
@@ -45,6 +50,8 @@ export default function PhysiqueAnalysis({ user }) {
       setAnalyzing(false)
     }
   }
+
+  if (upgradeFeature) return <UpgradeModal feature={upgradeFeature} onClose={() => setUpgradeFeature(null)}/>
 
   if (analyzing) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'60vh',textAlign:'center'}}>

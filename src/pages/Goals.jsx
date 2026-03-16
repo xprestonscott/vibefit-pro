@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, Check, Target, TrendingUp } from 'lucide-react'
 import { storage, KEYS } from '../utils/storage'
+import { getLimit, getCurrentPlan } from '../utils/subscription'
+import UpgradeModal from '../components/UpgradeModal'
 
 export default function Goals() {
   const [goals, setGoals]     = useState(() => storage.get(KEYS.GOALS) || [])
@@ -16,8 +18,12 @@ export default function Goals() {
 
   function saveGoals(g) { setGoals(g); storage.set(KEYS.GOALS, g) }
 
+  const [upgradeFeature, setUpgradeFeature] = useState(null)
+
   function addGoal() {
     if (!form.title || !form.target) return
+    const maxGoals = getLimit('maxGoals')
+    if (goals.length >= maxGoals) { setUpgradeFeature('maxGoals'); return }
     saveGoals([...goals, { ...form, id:Date.now(), current:Number(form.current)||0, target:Number(form.target), created:new Date().toISOString() }])
     setForm({ title:'', current:'', target:'', unit:'', deadline:'' })
     setShowAdd(false)
@@ -28,6 +34,7 @@ export default function Goals() {
 
   return (
     <div>
+      {upgradeFeature && <UpgradeModal feature={upgradeFeature} onClose={() => setUpgradeFeature(null)}/>}
       <div className="anim-up page-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:28, flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 className="font-display page-title" style={{ fontSize:isMobile?36:48, margin:0 }}>MY <span className="gradient-text">GOALS</span></h1>

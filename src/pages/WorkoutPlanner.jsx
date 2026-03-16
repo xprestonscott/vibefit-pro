@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Zap, RefreshCw, Check, ChevronRight, Send, X, RotateCcw, Dumbbell } from 'lucide-react'
 import { storage, KEYS } from '../utils/storage'
+import { checkLimit, canUse, incrementUsage, getCurrentPlan, PLANS } from '../utils/subscription'
+import UpgradeModal from '../components/UpgradeModal'
 import { generateWorkoutPlan, adjustWorkout } from '../utils/ai'
 
 const SPLITS = [
@@ -34,8 +36,12 @@ export default function WorkoutPlanner({ user }) {
   const days = plan ? Object.keys(plan.workouts) : []
   const currentWorkout = plan && selectedDay ? plan.workouts[selectedDay] : null
 
+  const [upgradeFeature, setUpgradeFeature] = useState(null)
+
   async function handleGenerate() {
     if (!selectedSplit || !splitInfo) return
+    if (!checkLimit('aiWorkoutsPerDay')) { setUpgradeFeature('aiWorkoutsPerDay'); return }
+    incrementUsage('aiWorkoutsPerDay')
     setGenerating(true)
     setError(null)
     try {
@@ -55,6 +61,8 @@ export default function WorkoutPlanner({ user }) {
 
   async function handleAdjust() {
     if (!adjustText.trim() || !currentWorkout || !selectedDay) return
+    if (!checkLimit('aiAdjustmentsPerDay')) { setUpgradeFeature('aiAdjustmentsPerDay'); return }
+    incrementUsage('aiAdjustmentsPerDay')
     setAdjusting(true)
     setError(null)
     const userMsg = { role: 'user', content: adjustText }
@@ -88,6 +96,8 @@ export default function WorkoutPlanner({ user }) {
     setCompletedExs({})
     setChatHistory([])
   }
+
+  if (upgradeFeature) return <UpgradeModal feature={upgradeFeature} onClose={() => setUpgradeFeature(null)}/>
 
   if (generating) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'60vh',textAlign:'center'}}>
