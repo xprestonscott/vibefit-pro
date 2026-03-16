@@ -1,8 +1,8 @@
 
 export const STRIPE_LINKS = {
-  basic: "https://buy.stripe.com/your_basic_link",
-  pro:   "https://buy.stripe.com/your_pro_link",
-  elite: "https://buy.stripe.com/your_elite_link",
+  basic: "https://buy.stripe.com/00w4gAfZ83V09IH3cd6Na00",
+  pro:   "https://buy.stripe.com/bJeaEYeV4crwcUT3cd6Na01",
+  elite: "https://buy.stripe.com/6oUcN6bIS2QW6wv4gh6Na02",
 }
 
 export const PLANS = {
