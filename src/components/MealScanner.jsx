@@ -70,7 +70,7 @@ export default function MealScanner({ meal, onFoodAdded }) {
 
       <button className="btn-ghost" style={{padding:'7px 12px',fontSize:13}} onClick={handleOpen}>
         <Camera size={14}/> Scan
-        {!canScan && <span style={{fontSize:9,background:'#FF6B35',color:'#fff',borderRadius:4,padding:'1px 4px',marginLeft:2}}>PRO</span>}
+        {plan === 'free' && <span style={{fontSize:9,background:'rgba(57,255,20,.2)',color:'#39FF14',borderRadius:4,padding:'1px 4px',marginLeft:2}}>3 FREE</span>}
       </button>
 
       {open && (
