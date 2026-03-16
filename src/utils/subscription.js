@@ -125,9 +125,10 @@ export function checkLimit(feature) {
 export function checkout(planId, yearly = false) {
   const link = STRIPE_LINKS[planId]
   if (!link || link.includes('your_')) {
-    alert('Payment links not configured yet. Add your Stripe links in subscription.js')
+    alert('Payment links not configured yet.')
     return
   }
-  const successUrl = encodeURIComponent(window.location.origin + '?plan=' + planId)
-  window.location.href = link + '?success_url=' + successUrl
+  // Set flag so we know user is coming back from Stripe
+  sessionStorage.setItem('going_to_stripe', 'true')
+  window.location.href = link
 }
