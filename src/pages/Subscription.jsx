@@ -186,6 +186,20 @@ export default function Subscription() {
         })}
       </div>
 
+
+      {/* Embedded Stripe Checkout */}
+      <div style={{marginBottom:48}}>
+        <h2 className="font-display" style={{fontSize:36,textAlign:'center',marginBottom:8}}>
+          SUBSCRIBE <span className="gradient-text">NOW</span>
+        </h2>
+        <p style={{color:'var(--vf-muted)',textAlign:'center',marginBottom:28,fontSize:14}}>
+          Secured by Stripe · Cancel anytime · Receipt via email
+        </p>
+        <stripe-pricing-table
+          pricing-table-id="prctbl_1TBQD1ItlMiRy2bQ12ijUlbe"
+          publishable-key="pk_live_51T6y6AItlMiRy2bQeSgF3YGUpyeRkDBNDwbbOVDP2XNM02sDXo2Ix4B5lLCOrwsbwdiJNC0uQg7uwRWIZOi9i1Uy00Woujy3zV">
+        </stripe-pricing-table>
+      </div>
       {/* Trust badges */}
       <div style={{display:'flex',justifyContent:'center',gap:32,flexWrap:'wrap',color:'var(--vf-muted)',fontSize:13}}>
         {['🔒 Secured by Stripe','💳 All major cards','🔄 Cancel anytime','📧 Receipt via email','🇺🇸 Made in Oklahoma'].map(t => (
