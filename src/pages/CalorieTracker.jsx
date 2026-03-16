@@ -65,7 +65,7 @@ export default function CalorieTracker() {
   return (
     <div>
       {modal && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(8,8,16,.88)', backdropFilter:'blur(10px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:16 }}
+        <div style={{ position:'fixed', inset:0, background:'rgba(8,8,16,.95)', backdropFilter:'blur(16px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9000, padding:16 }}
           onClick={() => { setModal(null); setQuery('') }}>
           <div style={{ background:'var(--vf-card)', border:'1px solid var(--vf-border)', borderRadius:20, width:'100%', maxWidth:480, padding:24, maxHeight:'85vh', display:'flex', flexDirection:'column' }}
             onClick={e => e.stopPropagation()}>
