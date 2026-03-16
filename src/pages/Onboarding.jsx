@@ -128,7 +128,7 @@ export default function Onboarding({ onComplete, prefillName='', prefillEmail=''
             </div>
             <div>
               <label style={{ fontSize:11, color:'#6B6B8A', fontWeight:600, letterSpacing:'.5px', display:'block', marginBottom:6 }}>HEIGHT (inches)</label>
-              <input className="vf-input" type="number" placeholder='e.g. 71 (for 5'11")' value={height} onChange={e=>setHeight(e.target.value)}/>
+              <input className="vf-input" type="number" placeholder="e.g. 71 (for 5ft 11in)" value={height} onChange={e=>setHeight(e.target.value)}/>
               <div style={{ fontSize:10, color:'#6B6B8A', marginTop:4 }}>5ft = 60in · 6ft = 72in</div>
             </div>
             <div>
