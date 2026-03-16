@@ -148,7 +148,7 @@ export default function AuthPage({ onAuth }) {
             {mode === 'signup' && (
               <div>
                 <label style={{ fontSize:11, color:'var(--vf-muted)', fontWeight:600, letterSpacing:'.5px', display:'block', marginBottom:6 }}>YOUR NAME</label>
-                <input className="vf-input" placeholder="Preston" value={name} onChange={e => setName(e.target.value)}/>
+                <input className="vf-input" placeholder="Your name" autoComplete="off" value={name} onChange={e => setName(e.target.value)}/>
               </div>
             )}
             <div>
