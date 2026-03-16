@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { Plus, X, Search, Clock, ChevronDown, ChevronUp, Trash2, History, Target, Edit2, Check } from 'lucide-react'
 import { getGoalFromStorage, saveGoalToStorage, calculateMacros } from '../utils/calories'
 import { storage, KEYS } from '../utils/storage'
-import { getGoalFromStorage } from '../utils/calories'
 import { searchUSDA } from '../utils/usdaApi'
 import MealScanner from '../components/MealScanner'
 
