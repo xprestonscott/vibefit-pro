@@ -109,7 +109,7 @@ export default function PhysiqueAnalysis({ user }) {
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16,marginBottom:16}}>
         <div className="glass-card" style={{padding:24}}>
           <h4 style={{margin:'0 0 16px',fontSize:15,fontWeight:700,color:'#39FF14'}}>💪 Strengths</h4>
           {result.strengths?.map((s,i) => (
@@ -143,7 +143,7 @@ export default function PhysiqueAnalysis({ user }) {
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
         <div className="glass-card" style={{padding:24}}>
           <h4 style={{margin:'0 0 14px',fontSize:15,fontWeight:700}}>🥗 Nutrition Tips</h4>
           {result.nutritionTips?.map((t,i) => (
@@ -186,7 +186,7 @@ export default function PhysiqueAnalysis({ user }) {
           </div>
           <div style={{marginBottom:12}}>
             <label style={{fontSize:11,color:'var(--vf-muted)',fontWeight:600,letterSpacing:'.5px',display:'block',marginBottom:6}}>GENDER</label>
-            <div style={{display:'flex',gap:8}}>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {['Male','Female','Other'].map(g => (
                 <button key={g} onClick={() => setField('gender',g)} style={{flex:1,padding:'10px',borderRadius:8,border:`1px solid ${form.gender===g?'#39FF14':'var(--vf-border)'}`,background:form.gender===g?'rgba(57,255,20,.1)':'var(--vf-card2)',color:form.gender===g?'#39FF14':'var(--vf-muted)',cursor:'pointer',fontSize:13,fontWeight:600,transition:'all .2s'}}>{g}</button>
               ))}
@@ -206,7 +206,7 @@ export default function PhysiqueAnalysis({ user }) {
           </div>
           <div style={{marginBottom:12}}>
             <label style={{fontSize:11,color:'var(--vf-muted)',fontWeight:600,letterSpacing:'.5px',display:'block',marginBottom:6}}>EXPERIENCE LEVEL</label>
-            <div style={{display:'flex',gap:8}}>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {['Beginner','Intermediate','Advanced'].map(lv => (
                 <button key={lv} onClick={() => setField('experience',lv)} style={{flex:1,padding:'10px',borderRadius:8,border:`1px solid ${form.experience===lv?'#39FF14':'var(--vf-border)'}`,background:form.experience===lv?'rgba(57,255,20,.1)':'var(--vf-card2)',color:form.experience===lv?'#39FF14':'var(--vf-muted)',cursor:'pointer',fontSize:12,fontWeight:600,transition:'all .2s'}}>{lv}</button>
               ))}
