@@ -1,87 +1,196 @@
-import { useState } from 'react'
-import { Check, X, Zap, Crown, Star, Shield, CreditCard, Lock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Check, X, Zap, Crown, Star, Shield, Lock, ExternalLink, CheckCircle } from 'lucide-react'
+import { PLANS, getCurrentPlan, setPlan, checkout } from '../utils/subscription'
 
-const PLANS = [
-  {id:'free',name:'Free',price:0,color:'var(--vf-muted)',icon:'🌱',tagline:'Get started',current:true,features:[{t:'Basic workout planner',y:true},{t:'Up to 3 goals',y:true},{t:'Manual calorie logging',y:true},{t:'Ad-free experience',y:false},{t:'AI workout generation',y:false},{t:'AI physique analysis',y:false}],cta:'Current Plan'},
-  {id:'basic',name:'Basic',price:4.99,color:'#00E5FF',icon:'⚡',tagline:'Core features',features:[{t:'Everything in Free',y:true},{t:'Ad-free',y:true},{t:'Unlimited goals',y:true},{t:'1 AI physique scan/week',y:true},{t:'AI workout generation',y:true},{t:'Virtual coaching',y:false}],cta:'Go Basic'},
-  {id:'pro',name:'Pro',price:9.99,color:'#39FF14',icon:'🚀',tagline:'Full AI power',featured:true,badge:'MOST POPULAR',features:[{t:'Everything in Basic',y:true},{t:'Unlimited AI scans',y:true},{t:'Advanced physique insights',y:true},{t:'Custom AI workout plans',y:true},{t:'Premium buddy matching',y:true},{t:'Virtual coaching',y:false}],cta:'Go Pro'},
-  {id:'elite',name:'Elite',price:14.99,altPrice:119.99,color:'#FF6B35',icon:'👑',tagline:'Coaching included',badge:'BEST VALUE',features:[{t:'Everything in Pro',y:true},{t:'Virtual coaching sessions',y:true},{t:'Apple Health sync',y:true},{t:'Garmin / Whoop sync',y:true},{t:'Early feature access',y:true},{t:'1-on-1 form reviews',y:true}],cta:'Go Elite'},
-]
+const FEATURE_LABELS = {
+  aiWorkoutsPerDay:    'AI Workout Generation',
+  aiAdjustmentsPerDay: 'AI Workout Adjustments',
+  aiScansPerMonth:     'AI Physique Scans',
+  maxGoals:            'Goal Tracking',
+  calorieTracking:     'Calorie & Macro Tracking',
+  socialFeed:          'Social Feed & Friends',
+  friendSystem:        'Friend System',
+  customSplits:        'Custom Training Splits',
+  prioritySupport:     'Priority Support',
+  virtualCoaching:     'Virtual Coaching Sessions',
+}
 
 export default function Subscription() {
-  const [annual, setAnnual] = useState(false)
-  const [checkout, setCheckout] = useState(null)
-  const [done, setDone] = useState(false)
-  const [card, setCard] = useState('')
-  const [processing, setProcessing] = useState(false)
+  const [annual, setAnnual]           = useState(false)
+  const [currentPlan, setCurrentPlan] = useState(() => getCurrentPlan())
+  const [success, setSuccess]         = useState(false)
+  const [successPlan, setSuccessPlan] = useState(null)
 
-  function handlePay() { setProcessing(true); setTimeout(() => { setProcessing(false); setDone(true) }, 2000) }
+  // Only show success if coming back from Stripe
+  useEffect(() => {
+    const params     = new URLSearchParams(window.location.search)
+    const plan       = params.get('plan')
+    const fromStripe = sessionStorage.getItem('going_to_stripe') === 'true'
+
+    if (plan && PLANS[plan] && fromStripe) {
+      setPlan(plan)
+      setCurrentPlan(plan)
+      setSuccessPlan(PLANS[plan])
+      setSuccess(true)
+      sessionStorage.removeItem('going_to_stripe')
+    }
+
+    // Always clean the URL
+    if (plan) {
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+
+  function handleCheckout(planId) {
+    sessionStorage.setItem('going_to_stripe', 'true')
+    checkout(planId, annual)
+  }
+
+  const planList = Object.values(PLANS)
 
   return (
     <div>
-      {checkout && !done && (
-        <div style={{position:'fixed',inset:0,background:'rgba(8,8,16,.9)',backdropFilter:'blur(12px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:20}} onClick={() => {setCheckout(null);setDone(false)}}>
-          <div style={{background:'var(--vf-card)',border:'1px solid var(--vf-border)',borderRadius:24,maxWidth:420,width:'100%',padding:36}} onClick={e=>e.stopPropagation()}>
-            <div style={{display:'flex',justifyContent:'space-between',marginBottom:24}}><div><h3 style={{margin:0}}>Upgrade to {checkout.name}</h3><div style={{fontSize:13,color:'var(--vf-muted)',marginTop:4}}>${checkout.price}/month · Cancel anytime</div></div><span style={{fontSize:28}}>{checkout.icon}</span></div>
-            <div style={{marginBottom:14}}><label style={{fontSize:11,color:'var(--vf-muted)',fontWeight:600,letterSpacing:'.5px',display:'block',marginBottom:6}}>CARD NUMBER</label><div style={{position:'relative'}}><input className="vf-input" placeholder="1234 5678 9012 3456" value={card} onChange={e=>setCard(e.target.value)} style={{paddingRight:44}}/><CreditCard size={15} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',color:'var(--vf-muted)'}}/></div></div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:24}}>
-              <div><label style={{fontSize:11,color:'var(--vf-muted)',fontWeight:600,letterSpacing:'.5px',display:'block',marginBottom:6}}>EXPIRY</label><input className="vf-input" placeholder="MM/YY"/></div>
-              <div><label style={{fontSize:11,color:'var(--vf-muted)',fontWeight:600,letterSpacing:'.5px',display:'block',marginBottom:6}}>CVV</label><input className="vf-input" placeholder="•••" type="password"/></div>
-            </div>
-            <div style={{display:'flex',gap:10}}>
-              <button className="btn-ghost" style={{flex:1,justifyContent:'center'}} onClick={() => setCheckout(null)}>Cancel</button>
-              <button className="btn-primary" style={{flex:2,justifyContent:'center'}} disabled={processing} onClick={handlePay}>
-                {processing ? <div style={{width:16,height:16,border:'2px solid rgba(8,8,16,.3)',borderTopColor:'#080810',borderRadius:'50%',animation:'spin 1s linear infinite'}}/> : <><Lock size={13}/>Pay ${checkout.price}/mo</>}
-              </button>
-            </div>
-            <div style={{textAlign:'center',marginTop:14,fontSize:12,color:'var(--vf-muted)',display:'flex',gap:8,justifyContent:'center',alignItems:'center'}}><Shield size={12}/>256-bit SSL · Powered by Stripe</div>
-          </div>
-        </div>
-      )}
-      {checkout && done && (
-        <div style={{position:'fixed',inset:0,background:'rgba(8,8,16,.9)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}} onClick={() => {setCheckout(null);setDone(false)}}>
-          <div style={{background:'var(--vf-card)',border:'1px solid var(--vf-border)',borderRadius:24,maxWidth:380,width:'100%',padding:48,textAlign:'center'}}>
-            <div style={{width:80,height:80,borderRadius:'50%',background:'linear-gradient(135deg,#39FF14,#00C851)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:36,margin:'0 auto 24px',boxShadow:'0 0 30px rgba(57,255,20,.4)'}}>✓</div>
-            <h2 style={{margin:'0 0 12px'}}>Welcome to {checkout?.name}! 🎉</h2>
-            <p style={{color:'var(--vf-muted)',marginBottom:28}}>All {checkout?.name} features are now unlocked.</p>
-            <button className="btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={() => {setCheckout(null);setDone(false)}}>Start Using {checkout?.name}</button>
+      {/* Success banner */}
+      {success && successPlan && (
+        <div style={{background:'linear-gradient(135deg,rgba(57,255,20,.15),rgba(0,229,255,.08))',border:'1px solid rgba(57,255,20,.4)',borderRadius:16,padding:'20px 28px',marginBottom:32,display:'flex',alignItems:'center',gap:16}}>
+          <CheckCircle size={32} style={{color:'#39FF14',flexShrink:0}}/>
+          <div>
+            <div style={{fontSize:18,fontWeight:800,marginBottom:4}}>🎉 Payment successful! Welcome to {successPlan.name}!</div>
+            <div style={{color:'var(--vf-muted)',fontSize:14}}>All your new features are now unlocked.</div>
           </div>
         </div>
       )}
 
       <div className="anim-up" style={{textAlign:'center',marginBottom:48}}>
-        <span className="badge badge-green" style={{fontSize:12,padding:'6px 16px',marginBottom:16,display:'inline-flex'}}><Star size={11}/>Launch Pricing</span>
-        <h1 className="font-display" style={{fontSize:56,margin:'0 0 12px'}}>CHOOSE YOUR <span className="gradient-text">PLAN</span></h1>
-        <p style={{color:'var(--vf-muted)',fontSize:16,maxWidth:480,margin:'0 auto 32px'}}>7-day free trial on all paid plans. Cancel anytime.</p>
+        <span className="badge badge-green" style={{fontSize:12,padding:'6px 16px',marginBottom:16,display:'inline-flex'}}>
+          <Star size={11}/>Launch Pricing
+        </span>
+        <h1 className="font-display" style={{fontSize:56,margin:'0 0 12px'}}>
+          CHOOSE YOUR <span className="gradient-text">PLAN</span>
+        </h1>
+        <p style={{color:'var(--vf-muted)',fontSize:16,maxWidth:500,margin:'0 auto 32px'}}>
+          All plans include full access to AI workouts, friends, and the community.
+        </p>
+
+        {/* Annual toggle */}
         <div style={{display:'inline-flex',alignItems:'center',gap:12,background:'var(--vf-card)',border:'1px solid var(--vf-border)',borderRadius:40,padding:'8px 20px'}}>
           <span style={{fontSize:14,color:annual?'var(--vf-muted)':'var(--vf-text)',fontWeight:annual?400:700}}>Monthly</span>
           <button style={{width:48,height:26,borderRadius:13,border:'none',cursor:'pointer',background:annual?'#39FF14':'var(--vf-card2)',position:'relative',transition:'background .2s'}} onClick={() => setAnnual(a=>!a)}>
             <div style={{width:20,height:20,borderRadius:'50%',background:'#fff',position:'absolute',top:3,left:annual?25:3,transition:'left .2s',boxShadow:'0 1px 4px rgba(0,0,0,.3)'}}/>
           </button>
-          <span style={{fontSize:14,color:annual?'var(--vf-text)':'var(--vf-muted)',fontWeight:annual?700:400}}>Annual <span style={{color:'#39FF14',fontSize:12}}>Save 15%</span></span>
+          <span style={{fontSize:14,color:annual?'var(--vf-text)':'var(--vf-muted)',fontWeight:annual?700:400}}>
+            Annual <span style={{color:'#39FF14',fontSize:12}}>Save 15%</span>
+          </span>
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14}}>
-        {PLANS.map(p => {
-          const price = annual && p.altPrice ? (p.altPrice/12).toFixed(2) : p.price
+      {/* Plan cards */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:48,alignItems:'start'}}>
+        {planList.map(plan => {
+          const isCurrent = currentPlan === plan.id
+          const price = annual && plan.yearlyPrice
+            ? (plan.yearlyPrice / 12).toFixed(2)
+            : plan.price
+
           return (
-            <div key={p.id} className={`plan-card${p.featured?' featured':''}`} style={{borderColor:p.featured?`${p.color}40`:undefined}}>
-              {p.badge && <div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:p.featured?p.color:'var(--vf-card2)',color:p.featured?'#080810':p.color,borderRadius:20,padding:'4px 14px',fontSize:10,fontWeight:800,letterSpacing:'1px',whiteSpace:'nowrap',border:`1px solid ${p.color}40`}}>{p.badge}</div>}
-              <div style={{marginBottom:18}}><div style={{fontSize:28,marginBottom:8}}>{p.icon}</div><div style={{fontSize:17,fontWeight:800,marginBottom:3}}>{p.name}</div><div style={{fontSize:12,color:'var(--vf-muted)'}}>{p.tagline}</div></div>
-              <div style={{marginBottom:20}}>{p.price===0?<div style={{fontSize:32,fontWeight:900}}>Free</div>:<div style={{display:'flex',alignItems:'flex-end',gap:3}}><div style={{fontSize:32,fontWeight:900,color:p.color}}>${price}</div><div style={{fontSize:12,color:'var(--vf-muted)',marginBottom:4}}>/mo</div></div>}
-                {annual&&p.altPrice&&<div style={{fontSize:10,color:p.color,marginTop:3}}>Billed ${p.altPrice}/yr</div>}
+            <div key={plan.id} style={{
+              background: isCurrent ? `${plan.color}10` : 'var(--vf-card)',
+              border: `1px solid ${isCurrent ? plan.color : plan.id==='pro' ? 'rgba(57,255,20,.3)' : 'var(--vf-border)'}`,
+              borderRadius:20, padding:'28px 24px',
+              display:'flex', flexDirection:'column',
+              position:'relative', overflow:'hidden',
+              transition:'all .3s',
+            }}>
+              {plan.id === 'pro' && (
+                <div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',background:'#39FF14',color:'#080810',borderRadius:'0 0 10px 10px',padding:'4px 14px',fontSize:10,fontWeight:800,letterSpacing:'1px',whiteSpace:'nowrap'}}>
+                  MOST POPULAR
+                </div>
+              )}
+              {isCurrent && (
+                <div style={{position:'absolute',top:12,right:12}}>
+                  <span className="badge badge-green" style={{fontSize:10}}>✓ Active</span>
+                </div>
+              )}
+
+              <div style={{marginBottom:20,marginTop:plan.id==='pro'?16:0}}>
+                <div style={{fontSize:32,marginBottom:10}}>{plan.icon}</div>
+                <div style={{fontSize:19,fontWeight:800,marginBottom:4}}>{plan.name}</div>
               </div>
-              <div style={{flex:1,marginBottom:20}}>
-                {p.features.map((f,i) => (<div key={i} style={{display:'flex',gap:8,padding:'6px 0',borderBottom:i<p.features.length-1?'1px solid rgba(37,37,64,.4)':'none',alignItems:'center'}}>{f.y?<Check size={13} style={{color:p.color,flexShrink:0}}/>:<X size={13} style={{color:'var(--vf-border)',flexShrink:0}}/>}<span style={{fontSize:12,color:f.y?'var(--vf-text)':'var(--vf-muted)'}}>{f.t}</span></div>))}
+
+              <div style={{marginBottom:24}}>
+                {plan.price === 0 ? (
+                  <div>
+                    <span style={{fontSize:36,fontWeight:900}}>Free</span>
+                    <div style={{fontSize:12,color:'var(--vf-muted)',marginTop:4}}>Forever</div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{display:'flex',alignItems:'flex-end',gap:4}}>
+                      <span style={{fontSize:36,fontWeight:900,color:plan.color}}>${price}</span>
+                      <span style={{fontSize:13,color:'var(--vf-muted)',marginBottom:6}}>/mo</span>
+                    </div>
+                    {annual && plan.yearlyPrice && (
+                      <div style={{fontSize:11,color:plan.color,marginTop:4}}>
+                        Billed ${plan.yearlyPrice}/yr
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              {p.current?<button className="btn-ghost" style={{width:'100%',justifyContent:'center'}}><Check size={13}/>Current Plan</button>:
-                <button className={p.featured?'btn-primary':'btn-ghost'} style={{width:'100%',justifyContent:'center',borderColor:!p.featured?p.color:undefined,color:!p.featured?p.color:undefined}} onClick={() => setCheckout(p)}>
-                  {p.id==='elite'?<Crown size={13}/>:<Zap size={13}/>}{p.cta}
-                </button>}
+
+              {/* Features */}
+              <div style={{flex:1,marginBottom:24}}>
+                {Object.entries(plan.limits).map(([key, val]) => (
+                  <div key={key} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 0',borderBottom:'1px solid rgba(37,37,64,.4)'}}>
+                    {val === false || val === 0 ? (
+                      <X size={13} style={{color:'var(--vf-border)',flexShrink:0}}/>
+                    ) : (
+                      <Check size={13} style={{color:plan.color,flexShrink:0}}/>
+                    )}
+                    <span style={{fontSize:12,color:val===false||val===0?'var(--vf-muted)':'var(--vf-text)'}}>
+                      {key === 'aiWorkoutsPerDay'    ? val===999?'Unlimited AI workouts':`${val} AI workout/day` :
+                       key === 'aiAdjustmentsPerDay' ? val===999?'Unlimited AI adjustments':`${val} adjustments/day` :
+                       key === 'aiScansPerMonth'     ? val===999?'Unlimited physique scans':`${val} scans/month` :
+                       key === 'maxGoals'            ? val===999?'Unlimited goals':`Max ${val} goals` :
+                       FEATURE_LABELS[key] || key}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              {isCurrent ? (
+                <button className="btn-ghost" style={{width:'100%',justifyContent:'center',borderColor:plan.color,color:plan.color,cursor:'default'}}>
+                  <CheckCircle size={14}/> Current Plan
+                </button>
+              ) : plan.price === 0 ? (
+                <button className="btn-ghost" style={{width:'100%',justifyContent:'center'}}
+                  onClick={() => { setPlan('free'); setCurrentPlan('free') }}>
+                  Downgrade to Free
+                </button>
+              ) : (
+                <button
+                  className={plan.id==='pro'?'btn-primary':'btn-ghost'}
+                  style={{width:'100%',justifyContent:'center',
+                    ...(plan.id!=='pro'?{borderColor:plan.color,color:plan.color}:{})
+                  }}
+                  onClick={() => handleCheckout(plan.id)}
+                >
+                  {plan.id==='elite'?<Crown size={14}/>:<Zap size={14}/>}
+                  Upgrade · ${price}/mo
+                  <ExternalLink size={12} style={{opacity:.6}}/>
+                </button>
+              )}
             </div>
           )
         })}
+      </div>
+
+      {/* Trust badges */}
+      <div style={{display:'flex',justifyContent:'center',gap:32,flexWrap:'wrap',color:'var(--vf-muted)',fontSize:13}}>
+        {['🔒 Secured by Stripe','💳 All major cards','🔄 Cancel anytime','📧 Receipt via email','🇺🇸 Made in Oklahoma'].map(t => (
+          <span key={t}>{t}</span>
+        ))}
       </div>
     </div>
   )
