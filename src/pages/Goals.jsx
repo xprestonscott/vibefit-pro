@@ -74,7 +74,7 @@ export default function Goals() {
           <button className="btn-primary" style={{ padding:'12px 28px' }} onClick={() => setShowAdd(true)}><Plus size={14}/>Add Your First Goal</button>
         </div>
       ) : (
-        <div className="grid-2">
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
           {goals.map(g => {
             const pct = Math.min(Math.round((g.current/g.target)*100), 100)
             return (

@@ -85,7 +85,7 @@ export default function Subscription() {
       </div>
 
       {/* Plan cards */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:48,alignItems:'start'}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:16,marginBottom:48,alignItems:'start'}}>
         {planList.map(plan => {
           const isCurrent = currentPlan === plan.id
           const price = annual && plan.yearlyPrice

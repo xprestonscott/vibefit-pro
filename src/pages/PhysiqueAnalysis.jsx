@@ -78,7 +78,7 @@ export default function PhysiqueAnalysis({ user }) {
       </div>
 
       <div className="glass-card anim-up" style={{padding:32,marginBottom:20}}>
-        <div style={{display:'flex',gap:32,justifyContent:'center',flexWrap:'wrap',marginBottom:24}}>
+        <div style={{display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap',marginBottom:24}}>
           <ScoreRing score={Number(result.overallScore)||72} size={130} color="#39FF14" label="Overall Score"/>
           <ScoreRing score={Number(result.postureScore)||68} size={90} color="#FF6B35" label="Posture"/>
           <ScoreRing score={Number(result.symmetryScore)||81} size={90} color="#8B5CF6" label="Symmetry"/>

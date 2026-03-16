@@ -102,7 +102,7 @@ export default function App() {
   return (
     <div style={{ display:'flex', minHeight:'100vh', background:'#080810' }}>
       <Sidebar currentPage={page} setCurrentPage={setPage} user={userProfile} onLogout={handleLogout}/>
-      <main style={{ flex:1, marginLeft, paddingTop, padding:isMobile?'72px 16px 24px':'36px 40px', overflowY:'auto', minHeight:'100vh', transition:'margin-left .25s ease' }}>
+      <main style={{ flex:1, marginLeft:isMobile?0:marginLeft, paddingTop, padding:isMobile?'68px 14px 80px':'36px 40px', overflowY:'auto', minHeight:'100vh', width:'100%', overflowX:'hidden' }}>
         <Page setCurrentPage={setPage} user={userProfile}/>
       </main>
     </div>
