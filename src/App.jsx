@@ -148,7 +148,7 @@ export default function App() {
       <InstallBanner/>
       <Sidebar currentPage={page} setCurrentPage={setPage} user={userProfile} onLogout={handleLogout}/>
       <main style={{ flex:1, marginLeft:isMobile?0:marginLeft, paddingTop, padding:isMobile?'68px 14px 80px':'36px 40px', overflowY:'auto', minHeight:'100vh', width:'100%', overflowX:'hidden' }}>
-        <Page setCurrentPage={setPage} user={userProfile}/>
+        <Page setCurrentPage={setPage} user={userProfile} user={userProfile}/>
       </main>
     </div>
   )
