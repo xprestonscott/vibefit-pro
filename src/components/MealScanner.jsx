@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { Camera, X, Zap, Check, AlertCircle, Upload } from 'lucide-react'
 import { analyzeMeal } from '../utils/ai'
-import { getCurrentPlan } from '../utils/subscription'
+import { getCurrentPlan, checkLimit, incrementUsage, getLimit, getDailyUsage } from '../utils/subscription'
 import UpgradeModal from './UpgradeModal'
 
 export default function MealScanner({ meal, onFoodAdded }) {
@@ -14,11 +14,15 @@ export default function MealScanner({ meal, onFoodAdded }) {
   const [showUpgrade, setShowUpgrade] = useState(false)
   const fileRef = useRef()
 
-  const plan    = getCurrentPlan()
-  const canScan = ['basic','pro','elite'].includes(plan)
+  const plan       = getCurrentPlan()
+  const SCAN_KEY   = 'vf_meal_scans_' + new Date().toISOString().slice(0,7)
+  const scansUsed  = parseInt(localStorage.getItem(SCAN_KEY) || '0')
+  const scanLimit  = plan === 'free' ? 3 : plan === 'basic' ? 4 : 999
+  const scansLeft  = Math.max(0, scanLimit - scansUsed)
+  const canScan    = true
 
   function handleOpen() {
-    if (!canScan) { setShowUpgrade(true); return }
+    if (scansLeft <= 0) { setShowUpgrade(true); return }
     setOpen(true)
   }
 
@@ -70,7 +74,9 @@ export default function MealScanner({ meal, onFoodAdded }) {
 
       <button className="btn-ghost" style={{padding:'7px 12px',fontSize:13}} onClick={handleOpen}>
         <Camera size={14}/> Scan
-        {plan === 'free' && <span style={{fontSize:9,background:'rgba(57,255,20,.2)',color:'#39FF14',borderRadius:4,padding:'1px 4px',marginLeft:2}}>3 FREE</span>}
+  {plan === 'free' && scansLeft > 0 && <span style={{fontSize:9,background:'rgba(57,255,20,.2)',color:'#39FF14',borderRadius:4,padding:'1px 4px',marginLeft:2}}>{scansLeft} left</span>}
+        {plan === 'free' && scansLeft <= 0 && <span style={{fontSize:9,background:'rgba(255,107,53,.2)',color:'#FF6B35',borderRadius:4,padding:'1px 4px',marginLeft:2}}>Upgrade</span>}
+        {plan !== 'free' && <span style={{fontSize:9,background:'rgba(57,255,20,.2)',color:'#39FF14',borderRadius:4,padding:'1px 4px',marginLeft:2}}>PRO</span>}
       </button>
 
       {open && (
