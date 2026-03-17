@@ -118,7 +118,7 @@ export default function WorkoutPlanner({ user }) {
       {configStep === 'split' && (
         <div className="anim-up">
           <h3 style={{fontSize:18,fontWeight:700,marginBottom:20}}>Step 1 — Choose Your Split</h3>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:28}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10,marginBottom:20}}>
             {SPLITS.map(s => (
               <div key={s.id} className={`split-card ${selectedSplit===s.id?'selected':''}`} onClick={() => setSelectedSplit(s.id)}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
@@ -150,7 +150,7 @@ export default function WorkoutPlanner({ user }) {
           </div>
 
           <h3 style={{fontSize:18,fontWeight:700,marginBottom:20}}>Step 2 — Configure</h3>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:32}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:16,marginBottom:32}}>
             <div>
               <label style={{fontSize:12,color:'var(--vf-muted)',fontWeight:600,letterSpacing:'.5px',display:'block',marginBottom:10}}>DAYS PER WEEK</label>
               <div style={{display:'flex',gap:8}}>
@@ -210,7 +210,7 @@ export default function WorkoutPlanner({ user }) {
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'240px 1fr',gap:20}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
         <div style={{display:'flex',flexDirection:'column',gap:8}}>
           {days.map(dk => {
             const w = plan.workouts[dk]
