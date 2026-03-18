@@ -1,190 +1,254 @@
 import { useState, useEffect } from 'react'
-import { Dumbbell, Plus, Zap, TrendingUp, Target } from 'lucide-react'
+import { Zap, Target, Flame, Droplets, TrendingUp, ArrowRight, CheckCircle, Calendar } from 'lucide-react'
 import { storage, KEYS } from '../utils/storage'
+import { getGoalFromStorage } from '../utils/calories'
+import { getCurrentPlan, PLANS } from '../utils/subscription'
 
-export default function Dashboard({ setCurrentPage, user }) {
-  const plan   = storage.get(KEYS.WORKOUTS)
-  const goals  = storage.get(KEYS.GOALS) || []
-  const streak = storage.get(KEYS.STREAK) || 0
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-
-  useEffect(() => {
-    const fn = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('resize', fn)
-    return () => window.removeEventListener('resize', fn)
-  }, [])
-
-  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-  const todayName = dayNames[new Date().getDay()]
-  const todayWorkout = plan ? (() => {
-    const days = Object.values(plan.workouts)
-    const idx  = new Date().getDay()
-    return days[idx % days.length]
-  })() : null
-
-  if (!plan) return (
-    <div>
-      <div className="anim-up" style={{ marginBottom: 28 }}>
-        <div style={{ color:'var(--vf-muted)', fontSize:13, marginBottom:6 }}>{todayName} · Welcome</div>
-        <h1 className="font-display page-title" style={{ fontSize:48, lineHeight:1, margin:0 }}>
-          HEY, <span className="gradient-text">{(user?.name||'ATHLETE').toUpperCase()} 👋</span>
-        </h1>
-        <p style={{ color:'var(--vf-muted)', marginTop:8, fontSize:15 }}>Let's build your AI-powered program.</p>
-      </div>
-
-      <div className="grid-3" style={{ marginBottom:28 }}>
-        {[
-          { icon:'🏋️', title:'Build Your Program', desc:'Choose a split and let AI generate personalized workouts', btn:'Build Now', page:'workout', color:'#39FF14' },
-          { icon:'🥗', title:'Track Nutrition', desc:'Log meals, track macros, hit your calorie goals', btn:'Start Logging', page:'calories', color:'#00E5FF' },
-          { icon:'🎯', title:'Set Goals', desc:'Define SMART goals and track your progress', btn:'Add Goal', page:'goals', color:'#FF6B35' },
-        ].map(c => (
-          <div key={c.title} style={{ background:'var(--vf-card)', border:`1px solid ${c.color}20`, borderRadius:16, padding:isMobile?18:28, display:'flex', flexDirection:'column', gap:14, transition:'all .25s' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor=`${c.color}40`}
-            onMouseLeave={e => e.currentTarget.style.borderColor=`${c.color}20`}>
-            <div style={{ fontSize:isMobile?32:40 }}>{c.icon}</div>
-            <div>
-              <div style={{ fontSize:isMobile?15:17, fontWeight:700, marginBottom:5 }}>{c.title}</div>
-              <div style={{ fontSize:13, color:'var(--vf-muted)', lineHeight:1.6 }}>{c.desc}</div>
-            </div>
-            <button className="btn-primary" style={{ marginTop:'auto', justifyContent:'center', background:`linear-gradient(135deg,${c.color},${c.color}CC)` }} onClick={() => setCurrentPage(c.page)}>
-              {c.btn}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ background:'linear-gradient(135deg,rgba(57,255,20,.08),rgba(0,229,255,.05))', border:'1px solid rgba(57,255,20,.2)', borderRadius:16, padding:isMobile?'20px 18px':'28px 32px', display:'flex', flexDirection:isMobile?'column':'row', alignItems:isMobile?'flex-start':'center', gap:16 }}>
-        <div style={{ fontSize:40 }}>⚡</div>
-        <div style={{ flex:1 }}>
-          <div style={{ fontSize:isMobile?15:18, fontWeight:800, marginBottom:6 }}>Your AI fitness coach is ready</div>
-          <div style={{ color:'var(--vf-muted)', fontSize:13, lineHeight:1.6 }}>VibeFit Pro uses AI to generate custom workout programs, adjust exercises in real-time, and analyze your physique.</div>
+function StatCard({ icon, label, value, sub, color, onClick }) {
+  return (
+    <div className="stat-card" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default', transition:'all .2s' }}
+      onMouseEnter={e => onClick && (e.currentTarget.style.borderColor = color)}
+      onMouseLeave={e => onClick && (e.currentTarget.style.borderColor = 'var(--vf-border)')}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
+        <div style={{ width:36, height:36, borderRadius:10, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          {icon}
         </div>
-        <button className="btn-primary" style={{ flexShrink:0, padding:'12px 24px', fontSize:14, width:isMobile?'100%':'auto', justifyContent:'center' }} onClick={() => setCurrentPage('workout')}>
-          <Zap size={15}/> Build My Program
-        </button>
+        {onClick && <ArrowRight size={14} style={{ color:'var(--vf-muted)' }}/>}
       </div>
+      <div style={{ fontSize:28, fontWeight:900, color, lineHeight:1, marginBottom:4 }}>{value}</div>
+      <div style={{ fontSize:13, fontWeight:600, marginBottom:2 }}>{label}</div>
+      {sub && <div style={{ fontSize:11, color:'var(--vf-muted)' }}>{sub}</div>}
     </div>
   )
+}
+
+function ProgressRing({ value, max, size=60, color='#39FF14', label }) {
+  const pct  = Math.min((value / max) * 100, 100)
+  const r    = (size - 8) / 2
+  const circ = 2 * Math.PI * r
+  const dash = circ * (pct / 100)
+  return (
+    <div style={{ textAlign:'center' }}>
+      <svg width={size} height={size} style={{ transform:'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#252540" strokeWidth={6}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={6}
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition:'stroke-dasharray 1s ease' }}/>
+      </svg>
+      <div style={{ fontSize:11, color:'var(--vf-muted)', marginTop:4 }}>{label}</div>
+    </div>
+  )
+}
+
+export default function Dashboard({ setCurrentPage, user }) {
+  const today    = new Date().toISOString().split('T')[0]
+  const foodLog  = storage.get(KEYS.FOOD_LOG) || {}
+  const todayLog = foodLog[today] || { breakfast:[], lunch:[], dinner:[], snacks:[] }
+  const allFoods = Object.values(todayLog).flat()
+  const { calories: calGoal, macros } = getGoalFromStorage()
+  const plan     = getCurrentPlan()
+  const planInfo = PLANS[plan]
+
+  const totals = {
+    cal: allFoods.reduce((a,f) => a+(f.cal||0), 0),
+    p:   allFoods.reduce((a,f) => a+(f.p||0),   0),
+    c:   allFoods.reduce((a,f) => a+(f.c||0),   0),
+    f:   allFoods.reduce((a,f) => a+(f.f||0),   0),
+  }
+
+  const workout     = storage.get(KEYS.WORKOUT)
+  const goals       = storage.get(KEYS.GOALS) || []
+  const doneGoals   = goals.filter(g => g.completed).length
+  const isMobile    = window.innerWidth < 768
+  const firstName   = user?.name?.split(' ')[0] || 'Athlete'
+
+  // Streak calculation
+  const [streak, setStreak] = useState(0)
+  useEffect(() => {
+    let count = 0
+    let date  = new Date()
+    for (let i = 0; i < 30; i++) {
+      const key   = date.toISOString().split('T')[0]
+      const foods = foodLog[key] ? Object.values(foodLog[key]).flat() : []
+      if (foods.length > 0) { count++; date.setDate(date.getDate() - 1) }
+      else break
+    }
+    setStreak(count)
+  }, [])
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const remaining = calGoal - totals.cal
 
   return (
     <div>
-      <div className="anim-up page-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:24, flexWrap:'wrap', gap:12 }}>
-        <div>
-          <div style={{ color:'var(--vf-muted)', fontSize:13, marginBottom:6 }}>{todayName} · {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
-          <h1 className="font-display page-title" style={{ fontSize:isMobile?32:48, lineHeight:1, margin:0 }}>
-            WELCOME BACK, <span className="gradient-text">{(user?.name||'ATHLETE').toUpperCase()}</span>
-          </h1>
-          {streak > 0 && <p style={{ marginTop:6, fontSize:14, color:'var(--vf-muted)' }}>🔥 <span style={{ color:'#FF6B35', fontWeight:700 }}>{streak}-day streak</span> — keep it going!</p>}
+      {/* Header */}
+      <div className="anim-up" style={{ marginBottom:24 }}>
+        <div style={{ fontSize:13, color:'var(--vf-muted)', marginBottom:4 }}>
+          {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })}
         </div>
-        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-          <button className="btn-ghost" style={{ fontSize:13 }} onClick={() => setCurrentPage('calories')}><Plus size={14}/>Log Meal</button>
-          <button className="btn-primary" style={{ fontSize:13 }} onClick={() => setCurrentPage('workout')}><Dumbbell size={14}/>Workout</button>
-        </div>
+        <h1 className="font-display" style={{ fontSize:isMobile?32:52, margin:0, lineHeight:1.1 }}>
+          {greeting}, <span className="gradient-text">{firstName}</span>
+        </h1>
+        {plan !== 'free' && (
+          <span className="badge badge-green" style={{ marginTop:8, display:'inline-flex' }}>
+            {planInfo?.icon} {planInfo?.name} Member
+          </span>
+        )}
       </div>
 
-      {/* Stats */}
-      <div className="grid-4" style={{ marginBottom:20 }}>
-        {[
-          { label:'Day Streak',    val:streak||0,          icon:'🔥', color:'#FF6B35' },
-          { label:'Active Goals',  val:goals.length,        icon:'🎯', color:'#39FF14' },
-          { label:'Program',       val:plan.daysPerWeek+'d/wk', icon:'🏋️', color:'#00E5FF' },
-          { label:'Split',         val:plan.split?.split('/')[0]?.trim()||'Custom', icon:'📋', color:'#8B5CF6' },
-        ].map(s => (
-          <div key={s.label} className="stat-card" style={{ textAlign:'center' }}>
-            <div style={{ fontSize:isMobile?22:28, marginBottom:6 }}>{s.icon}</div>
-            <div style={{ fontSize:isMobile?18:22, fontWeight:800, color:s.color }}>{s.val}</div>
-            <div style={{ fontSize:11, color:'var(--vf-muted)', marginTop:2 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Main grid */}
-      <div className="grid-main">
-        {/* Today's workout */}
-        <div className="glass-card" style={{ padding:isMobile?16:24 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16, flexWrap:'wrap', gap:8 }}>
-            <div>
-              <h3 style={{ margin:0, fontSize:16, fontWeight:700 }}>Today's Workout</h3>
-              <div style={{ color:'var(--vf-muted)', fontSize:12, marginTop:2 }}>{todayName}</div>
+      {/* Today's calorie summary */}
+      <div style={{ background:'linear-gradient(135deg,rgba(57,255,20,.08),rgba(0,229,255,.04))', border:'1px solid rgba(57,255,20,.2)', borderRadius:16, padding:'20px 24px', marginBottom:20, cursor:'pointer' }}
+        onClick={() => setCurrentPage('calories')}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:10 }}>
+          <div>
+            <div style={{ fontSize:12, color:'var(--vf-muted)', marginBottom:4, letterSpacing:'.5px' }}>TODAY'S CALORIES</div>
+            <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+              <span style={{ fontSize:isMobile?36:48, fontWeight:900, color: remaining<0?'#FF6B35':'#39FF14', lineHeight:1 }}>{totals.cal}</span>
+              <span style={{ fontSize:14, color:'var(--vf-muted)' }}>/ {calGoal} kcal</span>
             </div>
-            <button className="btn-ghost" style={{ fontSize:12, padding:'6px 12px' }} onClick={() => setCurrentPage('workout')}>
-              Full Plan <TrendingUp size={12}/>
+            <div style={{ fontSize:13, color: remaining>0?'#39FF14':'#FF6B35', marginTop:4, fontWeight:600 }}>
+              {remaining > 0 ? `${remaining} calories remaining` : `${Math.abs(remaining)} over goal`}
+            </div>
+          </div>
+          <div style={{ display:'flex', gap:16, flexShrink:0 }}>
+            <ProgressRing value={totals.p} max={macros?.protein||180} color="#39FF14" label="Protein"/>
+            <ProgressRing value={totals.c} max={macros?.carbs||260}   color="#00E5FF" label="Carbs"/>
+            <ProgressRing value={totals.f} max={macros?.fat||70}      color="#FF6B35" label="Fat"/>
+          </div>
+        </div>
+        <div style={{ height:6, background:'rgba(37,37,64,.6)', borderRadius:3, overflow:'hidden' }}>
+          <div style={{ height:'100%', width:`${Math.min((totals.cal/calGoal)*100,100)}%`, background: remaining<0?'#FF6B35':'linear-gradient(90deg,#39FF14,#00C851)', borderRadius:3, transition:'width 1s ease' }}/>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginTop:14 }}>
+          {[{l:'Protein',v:totals.p,g:macros?.protein||180,c:'#39FF14'},{l:'Carbs',v:totals.c,g:macros?.carbs||260,c:'#00E5FF'},{l:'Fat',v:totals.f,g:macros?.fat||70,c:'#FF6B35'}].map(m=>(
+            <div key={m.l} style={{ textAlign:'center', padding:'8px', background:'rgba(8,8,16,.4)', borderRadius:8 }}>
+              <div style={{ fontSize:16, fontWeight:800, color:m.c }}>{m.v}g</div>
+              <div style={{ fontSize:10, color:'var(--vf-muted)' }}>{m.l} / {m.g}g</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div style={{ display:'grid', gridTemplateColumns: isMobile?'1fr 1fr':'repeat(4,1fr)', gap:12, marginBottom:20 }}>
+        <StatCard
+          icon={<Flame size={18} style={{ color:'#FF6B35' }}/>}
+          label="Day Streak"
+          value={streak}
+          sub={streak > 0 ? 'days logging food' : 'Start today!'}
+          color="#FF6B35"
+          onClick={() => setCurrentPage('calories')}
+        />
+        <StatCard
+          icon={<Target size={18} style={{ color:'#8B5CF6' }}/>}
+          label="Goals"
+          value={`${doneGoals}/${goals.length}`}
+          sub={goals.length > 0 ? 'completed' : 'Set a goal'}
+          color="#8B5CF6"
+          onClick={() => setCurrentPage('goals')}
+        />
+        <StatCard
+          icon={<Zap size={18} style={{ color:'#39FF14' }}/>}
+          label="Workout"
+          value={workout ? 'Active' : 'None'}
+          sub={workout ? workout.split?.name || 'Program ready' : 'Generate one'}
+          color="#39FF14"
+          onClick={() => setCurrentPage('workout')}
+        />
+        <StatCard
+          icon={<TrendingUp size={18} style={{ color:'#00E5FF' }}/>}
+          label="Plan"
+          value={planInfo?.name || 'Free'}
+          sub={plan === 'free' ? 'Upgrade for more' : 'Active'}
+          color="#00E5FF"
+          onClick={() => setCurrentPage('subscription')}
+        />
+      </div>
+
+      {/* Quick actions */}
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontSize:12, color:'var(--vf-muted)', fontWeight:600, letterSpacing:'.5px', marginBottom:12 }}>QUICK ACTIONS</div>
+        <div style={{ display:'grid', gridTemplateColumns: isMobile?'1fr 1fr':'repeat(4,1fr)', gap:10 }}>
+          {[
+            { icon:'🤖', label:'Generate Workout', page:'workout', color:'#39FF14' },
+            { icon:'🍎', label:'Log a Meal',       page:'calories', color:'#00E5FF' },
+            { icon:'🎯', label:'View Goals',        page:'goals',   color:'#8B5CF6' },
+            { icon:'📊', label:'AI Physique Scan',  page:'physique', color:'#FF6B35' },
+          ].map(a => (
+            <button key={a.page} onClick={() => setCurrentPage(a.page)}
+              style={{ background:'#141422', border:`1px solid ${a.color}22`, borderRadius:14, padding:'16px 12px', cursor:'pointer', textAlign:'center', transition:'all .2s', display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor=a.color; e.currentTarget.style.background=`${a.color}08` }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor=`${a.color}22`; e.currentTarget.style.background='#141422' }}>
+              <div style={{ fontSize:28 }}>{a.icon}</div>
+              <div style={{ fontSize:12, fontWeight:600, color:'#F0F0FF' }}>{a.label}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Active workout */}
+      {workout && (
+        <div style={{ background:'#141422', border:'1px solid rgba(57,255,20,.2)', borderRadius:16, padding:20, marginBottom:20, cursor:'pointer' }}
+          onClick={() => setCurrentPage('workout')}>
+          <div style={{ fontSize:12, color:'var(--vf-muted)', fontWeight:600, letterSpacing:'.5px', marginBottom:10 }}>CURRENT PROGRAM</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <div>
+              <div style={{ fontSize:18, fontWeight:800, marginBottom:4 }}>{workout.split?.name || 'Workout Program'}</div>
+              <div style={{ fontSize:13, color:'var(--vf-muted)' }}>
+                {workout.days?.length || 0} days · {workout.frequency || ''} · {workout.equipment || ''}
+              </div>
+            </div>
+            <button className="btn-primary" style={{ fontSize:13, flexShrink:0 }} onClick={e => { e.stopPropagation(); setCurrentPage('workout') }}>
+              View <ArrowRight size={14}/>
             </button>
           </div>
-          {todayWorkout ? (
-            <div>
-              <div style={{ display:'flex', gap:8, marginBottom:14, flexWrap:'wrap' }}>
-                <span className="badge badge-green">{todayWorkout.name}</span>
-                <span className="badge badge-cyan">{todayWorkout.duration} min</span>
-                <span className="badge badge-amber">{todayWorkout.exercises?.length} exercises</span>
-              </div>
-              {todayWorkout.exercises?.slice(0,isMobile?3:4).map((ex,i) => (
-                <div key={i} className="exercise-row">
-                  <div style={{ width:26, height:26, borderRadius:7, background:'var(--vf-card2)', border:'1px solid var(--vf-border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0 }}>{i+1}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:13, fontWeight:600, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ex.name}</div>
-                    <div style={{ fontSize:11, color:'var(--vf-muted)' }}>{ex.muscle} · {ex.sets}×{ex.reps}</div>
+        </div>
+      )}
+
+      {/* Goals preview */}
+      {goals.length > 0 && (
+        <div style={{ background:'#141422', border:'1px solid #252540', borderRadius:16, padding:20, marginBottom:20 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+            <div style={{ fontSize:12, color:'var(--vf-muted)', fontWeight:600, letterSpacing:'.5px' }}>ACTIVE GOALS</div>
+            <button className="btn-ghost" style={{ fontSize:12, padding:'5px 10px' }} onClick={() => setCurrentPage('goals')}>View All</button>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {goals.filter(g => !g.completed).slice(0,3).map(goal => (
+              <div key={goal.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background:'#1C1C2E', borderRadius:10 }}>
+                <div style={{ fontSize:20, flexShrink:0 }}>{goal.icon || '🎯'}</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:600, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{goal.title}</div>
+                  <div style={{ height:3, background:'#252540', borderRadius:2, marginTop:6, overflow:'hidden' }}>
+                    <div style={{ height:'100%', width:`${Math.min(((goal.current||0)/goal.target)*100,100)}%`, background:'#39FF14', borderRadius:2 }}/>
                   </div>
                 </div>
-              ))}
-              {todayWorkout.exercises?.length > (isMobile?3:4) && (
-                <div style={{ textAlign:'center', padding:'10px', color:'var(--vf-muted)', fontSize:12 }}>
-                  +{todayWorkout.exercises.length-(isMobile?3:4)} more exercises
+                <div style={{ fontSize:11, color:'var(--vf-muted)', flexShrink:0 }}>
+                  {goal.current||0}/{goal.target} {goal.unit}
                 </div>
-              )}
-              <button className="btn-primary" style={{ marginTop:14, width:'100%', justifyContent:'center' }} onClick={() => setCurrentPage('workout')}>
-                <Zap size={14}/> Open Full Workout
-              </button>
-            </div>
-          ) : (
-            <div style={{ textAlign:'center', padding:'28px 0' }}>
-              <div style={{ fontSize:36, marginBottom:10 }}>🧘</div>
-              <div style={{ fontWeight:600, marginBottom:4 }}>Rest Day</div>
-              <div style={{ color:'var(--vf-muted)', fontSize:13 }}>Recovery is where growth happens.</div>
-            </div>
-          )}
-        </div>
-
-        {/* Right panel */}
-        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-          {/* Goals */}
-          <div className="glass-card" style={{ padding:isMobile?16:22 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-              <h3 style={{ margin:0, fontSize:15, fontWeight:700 }}>Active Goals</h3>
-              <button className="btn-ghost" style={{ padding:'5px 10px', fontSize:12 }} onClick={() => setCurrentPage('goals')}>Manage</button>
-            </div>
-            {goals.length === 0 ? (
-              <div style={{ textAlign:'center', padding:'16px 0' }}>
-                <div style={{ fontSize:28, marginBottom:8 }}>🎯</div>
-                <div style={{ fontSize:12, color:'var(--vf-muted)', marginBottom:12 }}>No goals set yet</div>
-                <button className="btn-ghost" style={{ fontSize:12, justifyContent:'center', width:'100%' }} onClick={() => setCurrentPage('goals')}><Plus size={12}/>Add Goal</button>
-              </div>
-            ) : goals.slice(0,3).map((g,i) => (
-              <div key={i} style={{ marginBottom:12 }}>
-                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4, fontSize:13 }}>
-                  <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'70%' }}>{g.title}</span>
-                  <span style={{ color:'#39FF14', fontWeight:700, flexShrink:0 }}>{Math.round((g.current/g.target)*100)}%</span>
-                </div>
-                <div className="progress-track" style={{ height:5 }}><div className="progress-fill" style={{ width:`${Math.min((g.current/g.target)*100,100)}%`, background:'#39FF14' }}/></div>
               </div>
             ))}
           </div>
+        </div>
+      )}
 
-          {/* AI Physique */}
-          <div style={{ background:'linear-gradient(135deg,rgba(139,92,246,.1),rgba(57,255,20,.06))', border:'1px solid rgba(139,92,246,.25)', borderRadius:14, padding:isMobile?16:20 }}>
-            <div style={{ display:'flex', gap:10, marginBottom:10 }}>
-              <Zap size={15} style={{ color:'#8B5CF6', flexShrink:0 }}/>
-              <span style={{ fontSize:12, fontWeight:700, color:'#8B5CF6' }}>AI PHYSIQUE ANALYSIS</span>
-            </div>
-            <div style={{ fontSize:12, color:'var(--vf-muted)', lineHeight:1.6, marginBottom:12 }}>
-              Get an AI-powered breakdown of your physique, muscle balance, and improvement plan.
-            </div>
-            <button className="btn-ghost" style={{ width:'100%', justifyContent:'center', fontSize:12, borderColor:'rgba(139,92,246,.4)', color:'#8B5CF6' }} onClick={() => setCurrentPage('physique')}>
-              Run Analysis →
+      {/* Empty state for new users */}
+      {!workout && goals.length === 0 && allFoods.length === 0 && (
+        <div style={{ background:'#141422', border:'2px dashed #252540', borderRadius:16, padding:32, textAlign:'center' }}>
+          <div style={{ fontSize:48, marginBottom:16 }}>🚀</div>
+          <h3 style={{ margin:'0 0 10px', fontSize:20 }}>Welcome to VibeFit Pro!</h3>
+          <p style={{ color:'var(--vf-muted)', marginBottom:24, lineHeight:1.7 }}>
+            Let's get started. Generate your first AI workout program or log your first meal.
+          </p>
+          <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
+            <button className="btn-primary" onClick={() => setCurrentPage('workout')}>
+              <Zap size={14}/> Generate Workout
+            </button>
+            <button className="btn-ghost" onClick={() => setCurrentPage('calories')}>
+              🍎 Log a Meal
             </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

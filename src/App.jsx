@@ -1,8 +1,11 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
+import OfflineBanner from './components/OfflineBanner'
+import LoadingSpinner from './components/LoadingSpinner'
 import { storage, KEYS } from './utils/storage'
 import { onAuthChange, getProfile, saveProfile, logOut } from './utils/auth'
+import { requestNotificationPermission, scheduleDailyReminders } from './utils/notifications'
 import AuthPage    from './pages/AuthPage'
 import Onboarding  from './pages/Onboarding'
 import Dashboard   from './pages/Dashboard'
@@ -122,12 +125,7 @@ export default function App() {
     </div>
   ) : null
 
-  if (authState === 'loading') return (
-    <div style={{ minHeight:'100vh', background:'var(--vf-bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:20 }}>
-      <div style={{ width:48, height:48, border:'3px solid var(--vf-border)', borderTopColor:'#39FF14', borderRadius:'50%', animation:'spin 1s linear infinite' }}/>
-      <div className="font-display" style={{ fontSize:24, color:'var(--vf-muted)' }}>LOADING...</div>
-    </div>
-  )
+  if (authState === 'loading') return <LoadingSpinner message='Loading VibeFit Pro'/>
 
   if (authState === 'auth') return <AuthPage onAuth={fbUser => { setFirebaseUser(fbUser); setAuthState('loading') }}/>
 
@@ -145,6 +143,7 @@ export default function App() {
 
   return (
     <div style={{ display:'flex', minHeight:'100vh', background:'#080810' }}>
+      <OfflineBanner/>
       <InstallBanner/>
       <Sidebar currentPage={page} setCurrentPage={setPage} user={userProfile} onLogout={handleLogout}/>
       <main style={{ flex:1, marginLeft:isMobile?0:marginLeft, paddingTop, padding:isMobile?'68px 14px 80px':'36px 40px', overflowY:'auto', minHeight:'100vh', width:'100%', overflowX:'hidden' }}>
