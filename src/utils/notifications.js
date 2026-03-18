@@ -32,7 +32,7 @@ export function scheduleDailyReminders() {
 
   // Workout reminder at 5pm
   if (hour >= 17 && hour < 18 && !workoutReminded) {
-    sendNotification('Workout time! 💪', 'Your program is ready. Let's get it done!')
+    sendNotification("Workout time! 💪", "Your program is ready. Let's get it done!")
     localStorage.setItem(`vf_workout_reminded_${today}`, '1')
   }
 
