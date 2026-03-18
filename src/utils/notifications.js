@@ -25,7 +25,7 @@ export function scheduleDailyReminders() {
     const log = JSON.parse(localStorage.getItem('vf_food_log') || '{}')
     const todayFoods = log[today] ? Object.values(log[today]).flat() : []
     if (todayFoods.length === 0) {
-      sendNotification('Time to log lunch! 🍎', 'Track your meals to hit your calorie goal today.')
+      sendNotification("Time to log lunch! 🍎", "Track your meals to hit your calorie goal today.")
       localStorage.setItem(`vf_meal_reminded_${today}`, '1')
     }
   }
@@ -42,7 +42,7 @@ export function scheduleDailyReminders() {
     const todayFoods = log[today] ? Object.values(log[today]).flat() : []
     const totalCal   = todayFoods.reduce((a,f) => a+(f.cal||0), 0)
     if (totalCal < 500) {
-      sendNotification('Don't forget to log dinner! 🌙', 'Keep your streak alive by tracking your meals.')
+      sendNotification("Don't forget to log dinner! 🌙", "Keep your streak alive by tracking your meals.")
     }
   }
 }
