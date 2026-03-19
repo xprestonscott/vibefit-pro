@@ -229,23 +229,6 @@ export default function Settings({ user, setCurrentPage }) {
           <CalorieGoalEditor user={user}/>
         </div>
 
-        {/* API Key info */}
-        <div className="glass-card" style={{ padding:28 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
-            <Key size={18} style={{ color:'#39FF14' }}/>
-            <h3 style={{ margin:0, fontSize:17 }}>Anthropic API Key</h3>
-          </div>
-          <p style={{ color:'var(--vf-muted)', fontSize:13, margin:'0 0 14px', lineHeight:1.6 }}>
-            Your API key powers the AI features. It's stored in your <code style={{ background:'var(--vf-card2)', padding:'2px 6px', borderRadius:4, color:'#39FF14' }}>.env</code> file locally and in Netlify environment variables for the live site.
-          </p>
-          <div style={{ background:'var(--vf-card2)', borderRadius:10, padding:'14px 16px', fontSize:13, color:'var(--vf-muted)', border:'1px solid var(--vf-border)' }}>
-            <div style={{ fontWeight:600, color:'var(--vf-text)', marginBottom:8 }}>To update your API key:</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-              <div>1. Get a key at <span style={{ color:'#00E5FF' }}>console.anthropic.com</span></div>
-              <div>2. Update <code style={{ color:'#39FF14' }}>.env</code> in your project folder</div>
-              <div>3. Update Netlify environment variables</div>
-              <div>4. Restart the dev server</div>
-            </div>
           </div>
         </div>
 
