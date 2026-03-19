@@ -229,8 +229,6 @@ export default function Settings({ user, setCurrentPage }) {
           <CalorieGoalEditor user={user}/>
         </div>
 
-          </div>
-        </div>
 
         {/* Notifications placeholder */}
         <div className="glass-card" style={{ padding:28 }}>
