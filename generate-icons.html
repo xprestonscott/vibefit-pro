@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate VibeFit Icons</title></head>
+<body style="background:#080810;color:#fff;font-family:sans-serif;padding:20px">
+<h2>Generating VibeFit Pro Icons...</h2>
+<div id="status"></div>
+<script>
+const sizes = [72, 96, 128, 144, 152, 192, 384, 512]
+
+function generateIcon(size) {
+  const canvas = document.createElement('canvas')
+  canvas.width  = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+
+  // Dark background
+  ctx.fillStyle = '#080810'
+  ctx.beginPath()
+  const r = size * 0.22
+  ctx.roundRect(0, 0, size, size, r)
+  ctx.fill()
+
+  // Green gradient square
+  const grad = ctx.createLinearGradient(size*.15, size*.15, size*.85, size*.85)
+  grad.addColorStop(0, '#39FF14')
+  grad.addColorStop(1, '#00C851')
+  ctx.fillStyle = grad
+  ctx.beginPath()
+  ctx.roundRect(size*.12, size*.12, size*.76, size*.76, r*.7)
+  ctx.fill()
+
+  // Lightning bolt emoji
+  ctx.fillStyle = '#080810'
+  ctx.font = `bold ${size*.48}px Arial`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('⚡', size/2, size/2 + size*.02)
+
+  return canvas.toDataURL('image/png')
+}
+
+async function downloadAll() {
+  const status = document.getElementById('status')
+  for (const size of sizes) {
+    const dataUrl = generateIcon(size)
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = `icon-${size}.png`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    status.innerHTML += `<p style="color:#39FF14">✅ icon-${size}.png downloaded</p>`
+    await new Promise(r => setTimeout(r, 300))
+  }
+  status.innerHTML += `<h3 style="color:#39FF14">All done! Move all icons to: vibefit-pro/public/icons/</h3>`
+}
+
+downloadAll()
+</script>
+</body>
+</html>
