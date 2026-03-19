@@ -24,29 +24,27 @@ self.addEventListener('activate', event => {
 })
 
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url)
+  const url = event.request.url
 
-  // Skip non-GET and external API calls
+  // Never cache API calls
+  if (url.includes('api.anthropic.com') ||
+      url.includes('firestore.googleapis.com') ||
+      url.includes('firebase') ||
+      url.includes('stripe.com') ||
+      url.includes('api.nal.usda.gov')) {
+    return
+  }
+
   if (event.request.method !== 'GET') return
-  if (url.hostname.includes('anthropic.com')) return
-  if (url.hostname.includes('googleapis.com')) return
-  if (url.hostname.includes('firebaseio.com')) return
-  if (url.hostname.includes('stripe.com')) return
-  if (url.hostname.includes('nal.usda.gov')) return
 
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => {
-        const fetchPromise = fetch(event.request)
-          .then(response => {
-            if (response.ok) {
-              const clone = response.clone()
-              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
-            }
-            return response
-          })
-          .catch(() => cached)
-        return cached || fetchPromise
+    fetch(event.request)
+      .then(response => {
+        if (!response || response.status !== 200) return response
+        const responseClone = response.clone()
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone))
+        return response
       })
+      .catch(() => caches.match(event.request))
   )
 })
