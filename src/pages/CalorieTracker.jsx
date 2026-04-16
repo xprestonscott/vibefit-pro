@@ -288,11 +288,14 @@ export default function CalorieTracker() {
 
   return (
     <div>
-      {modal && (
+      {modal && currentMeal && (
+        <FoodModal
           meal={modal}
-          mealLabel={MEALS.find(m=>m.id===modal)?.label || modal}
+          mealLabel={currentMeal.label}
           onAdd={addFood}
-          onClose={()=>setModal(null)}
+          onClose={function() { setModal(null) }}
+        />
+      )}
         />
       )}
 
