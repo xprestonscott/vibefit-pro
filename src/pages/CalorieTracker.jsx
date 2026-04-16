@@ -4,6 +4,7 @@ import { getGoalFromStorage, saveGoalToStorage, calculateMacros } from '../utils
 import { storage, KEYS } from '../utils/storage'
 import { searchUSDA } from '../utils/usdaApi'
 import MealScanner from '../components/MealScanner'
+import FoodSearch from '../components/FoodSearch'
 
 function getGoal() {
   const { calories, macros } = getGoalFromStorage()
@@ -288,7 +289,14 @@ export default function CalorieTracker() {
 
   return (
     <div>
-      {modal && <AddFoodModal meal={modal} onAdd={addFood} onClose={()=>setModal(null)}/>}
+      {modal && (
+        <FoodSearch
+          meal={modal}
+          mealLabel={MEALS.find(m=>m.id===modal)?.label || modal}
+          onAdd={addFood}
+          onClose={()=>setModal(null)}
+        />
+      )}
 
       <div className="anim-up" style={{marginBottom:20}}>
         <h1 className="font-display" style={{fontSize:isMobile?36:48,margin:0}}>
