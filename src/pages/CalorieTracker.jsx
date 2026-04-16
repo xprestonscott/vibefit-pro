@@ -296,8 +296,6 @@ export default function CalorieTracker() {
           onClose={function() { setModal(null) }}
         />
       )}
-        />
-      )}
 
       <div className="anim-up" style={{marginBottom:20}}>
         <h1 className="font-display" style={{fontSize:isMobile?36:48,margin:0}}>
