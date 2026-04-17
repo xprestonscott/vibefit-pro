@@ -1,0 +1,61 @@
+{
+  "packageId": "com.vibefitpro.app",
+  "host": "vibefit-pro.vercel.app",
+  "name": "VibeFit Pro",
+  "launcherName": "VibeFit Pro",
+  "display": "standalone",
+  "themeColor": "#080810",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#080810",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://vibefit-pro.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://vibefit-pro.vercel.app/icons/icon-512.png",
+  "monochromeIconUrl": "https://vibefit-pro.vercel.app/icons/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Users\\prest\\PycharmProjects\\vibefit-pro\\android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Workout Planner",
+      "shortName": "Workout",
+      "url": "https://vibefit-pro.vercel.app/?page=workout",
+      "chosenIconUrl": "https://vibefit-pro.vercel.app/icons/icon-96.png"
+    },
+    {
+      "name": "Nutrition Tracker",
+      "shortName": "Nutrition",
+      "url": "https://vibefit-pro.vercel.app/?page=calories",
+      "chosenIconUrl": "https://vibefit-pro.vercel.app/icons/icon-96.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://vibefit-pro.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://vibefit-pro.vercel.app/",
+  "minSdkVersion": 21,
+  "orientation": "portrait-primary",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [],
+  "appVersion": "1"
+}
